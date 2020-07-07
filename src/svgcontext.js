@@ -46,7 +46,7 @@ export class SVGContext {
     this.parent = this.svg;
 
     this.path = '';
-    this.pen = { x: 0, y: 0 };
+    this.pen = { x: NaN, y: NaN };
     this.lineWidth = 1.0;
     this.state = {
       scale: { x: 1, y: 1 },
@@ -251,11 +251,17 @@ export class SVGContext {
     this.width = width;
     this.height = height;
     this.element.style.width = width;
+
+    this.svg.style.width = width;
+    this.svg.style.height = height;
+
     const attributes = {
       width,
       height,
     };
+
     this.applyAttributes(this.svg, attributes);
+    this.scale(this.state.scale.x, this.state.scale.y);
     return this;
   }
 
@@ -396,8 +402,8 @@ export class SVGContext {
 
   beginPath() {
     this.path = '';
-    this.pen.x = 0;
-    this.pen.y = 0;
+    this.pen.x = NaN;
+    this.pen.y = NaN;
     return this;
   }
 
@@ -494,7 +500,10 @@ export class SVGContext {
 
     this.path += 'M' + x1 + ' ' + y1 + ' A' +
       radius + ' ' + radius + ' 0 ' + largeArcFlag + ' ' + sweepFlag + ' ' +
-      x2 + ' ' + y2 + 'M' + this.pen.x + ' ' + this.pen.y;
+      x2 + ' ' + y2;
+    if (!isNaN(this.pen.x) && !isNaN(this.pen.y)) {
+      this.peth += 'M' + this.pen.x + ' ' + this.pen.y;
+    }
   }
 
   closePath() {
@@ -611,6 +620,9 @@ export class SVGContext {
   }
 
   fillText(text, x, y) {
+    if (!text || text.length <= 0) {
+      return;
+    }
     const attributes = {};
     Vex.Merge(attributes, this.attributes);
     attributes.stroke = 'none';
@@ -631,6 +643,7 @@ export class SVGContext {
         'font-weight': this.state['font-weight'],
         'font-style': this.state['font-style'],
         'font-size': this.state['font-size'],
+        scale: this.state.scale,
       },
       attributes: {
         'font-family': this.attributes['font-family'],
@@ -646,6 +659,7 @@ export class SVGContext {
         width: this.shadow_attributes.width,
         color: this.shadow_attributes.color,
       },
+      lineWidth: this.lineWidth,
     });
     return this;
   }
@@ -657,6 +671,7 @@ export class SVGContext {
     this.state['font-weight'] = state.state['font-weight'];
     this.state['font-style'] = state.state['font-style'];
     this.state['font-size'] = state.state['font-size'];
+    this.state.scale = state.state.scale;
 
     this.attributes['font-family'] = state.attributes['font-family'];
     this.attributes['font-weight'] = state.attributes['font-weight'];
@@ -670,6 +685,8 @@ export class SVGContext {
 
     this.shadow_attributes.width = state.shadow_attributes.width;
     this.shadow_attributes.color = state.shadow_attributes.color;
+
+    this.lineWidth = state.lineWidth;
     return this;
   }
 }

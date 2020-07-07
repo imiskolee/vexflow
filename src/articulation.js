@@ -51,12 +51,17 @@ const snapLineToStaff = (canSitBetweenLines, line, position, offsetDirection) =>
   }
 };
 
+const isStaveNote = (note) => {
+  const noteCategory = note.getCategory();
+  return noteCategory === 'stavenotes' || noteCategory === 'gracenotes';
+};
+
 const getTopY = (note, textLine) => {
   const stave = note.getStave();
   const stemDirection = note.getStemDirection();
   const { topY: stemTipY, baseY: stemBaseY } = note.getStemExtents();
 
-  if (note.getCategory() === 'stavenotes') {
+  if (isStaveNote(note)) {
     if (note.hasStem()) {
       if (stemDirection === Stem.UP) {
         return stemTipY;
@@ -88,7 +93,7 @@ const getBottomY = (note, textLine) => {
   const stemDirection = note.getStemDirection();
   const { topY: stemTipY, baseY: stemBaseY } = note.getStemExtents();
 
-  if (note.getCategory() === 'stavenotes') {
+  if (isStaveNote(note)) {
     if (note.hasStem()) {
       if (stemDirection === Stem.UP) {
         return stemBaseY;
@@ -126,7 +131,7 @@ const getInitialOffset = (note, position) => {
     (position === BELOW && note.getStemDirection() === Stem.DOWN)
   );
 
-  if (note.getCategory() === 'stavenotes') {
+  if (isStaveNote(note)) {
     if (note.hasStem() && isOnStemTip) {
       return 0.5;
     } else {
@@ -204,6 +209,7 @@ export class Articulation extends Modifier {
     const articNameToCode = {
       staccato: 'a.',
       tenuto: 'a-',
+      accent: 'a>'
     };
 
     articulations
@@ -231,12 +237,17 @@ export class Articulation extends Modifier {
       font_scale: 38,
     };
 
+    this.reset();
+  }
+
+  reset() {
     this.articulation = Flow.articulationCodes(this.type);
     if (!this.articulation) {
       throw new Vex.RERR('ArgumentError', `Articulation not found: ${this.type}`);
     }
 
-    this.glyph = new Glyph(this.articulation.code, this.render_options.font_scale);
+    const code = (this.position === ABOVE ? this.articulation.aboveCode : this.articulation.belowCode) || this.articulation.code;
+    this.glyph = new Glyph(code, this.render_options.font_scale);
 
     this.setWidth(this.glyph.getMetrics().width);
   }
@@ -270,6 +281,8 @@ export class Articulation extends Modifier {
 
     const initialOffset = getInitialOffset(note, position);
 
+    const padding = this.musicFont.lookupMetric(`articulation.${glyph.getCode()}.padding`, 0);
+
     let y = {
       [ABOVE]: () => {
         glyph.setOrigin(0.5, 1);
@@ -296,7 +309,7 @@ export class Articulation extends Modifier {
 
       if (isWithinLines(snappedLine, position)) glyph.setOrigin(0.5, 0.5);
 
-      y += Math.abs(snappedLine - articLine) * staffSpace * offsetDirection;
+      y += Math.abs(snappedLine - articLine) * staffSpace * offsetDirection + (padding * offsetDirection);
     }
 
     L(`Rendering articulation at (x: ${x}, y: ${y})`);

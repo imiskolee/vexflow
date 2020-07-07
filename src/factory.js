@@ -12,16 +12,20 @@ import { Vex } from './vex';
 import { Accidental } from './accidental';
 import { Articulation } from './articulation';
 import { Annotation } from './annotation';
+import { ChordSymbol } from './chordsymbol';
 import { Formatter } from './formatter';
 import { FretHandFinger } from './frethandfinger';
 import { StringNumber } from './stringnumber';
 import { TextDynamics } from './textdynamics';
 import { ModifierContext } from './modifiercontext';
+import { MultiMeasureRest } from './multimeasurerest';
 import { Renderer } from './renderer';
 import { Stave } from './stave';
 import { StaveTie } from './stavetie';
 import { StaveLine } from './staveline';
 import { StaveNote } from './stavenote';
+import { GlyphNote } from './glyphnote';
+import { RepeatNote } from './repeatnote';
 import { StaveConnector } from './staveconnector';
 import { System } from './system';
 import { TickContext } from './tickcontext';
@@ -34,6 +38,7 @@ import { GraceNoteGroup } from './gracenotegroup';
 import { NoteSubGroup } from './notesubgroup';
 import { EasyScore } from './easyscore';
 import { TimeSigNote } from './timesignote';
+import { KeySigNote } from './keysignote';
 import { ClefNote } from './clefnote';
 import { PedalMarking } from './pedalmarking';
 import { TextBracket } from './textbracket';
@@ -165,6 +170,22 @@ export class Factory {
     return note;
   }
 
+  GlyphNote(glyph, noteStruct, options) {
+    const note = new GlyphNote(glyph, noteStruct, options);
+    if (this.stave) note.setStave(this.stave);
+    note.setContext(this.context);
+    this.renderQ.push(note);
+    return note;
+  }
+
+  RepeatNote(type, noteStruct, options) {
+    const note = new RepeatNote(type, noteStruct, options);
+    if (this.stave) note.setStave(this.stave);
+    note.setContext(this.context);
+    this.renderQ.push(note);
+    return note;
+  }
+
   GhostNote(noteStruct) {
     const ghostNote = new GhostNote(noteStruct);
     if (this.stave) ghostNote.setStave(this.stave);
@@ -222,6 +243,14 @@ export class Factory {
     return timeSigNote;
   }
 
+  KeySigNote(params) {
+    const keySigNote = new KeySigNote(params.key, params.cancelKey, params.alterKey);
+    if (this.stave) keySigNote.setStave(this.stave);
+    keySigNote.setContext(this.context);
+    this.renderQ.push(keySigNote);
+    return keySigNote;
+  }
+
   TabNote(noteStruct) {
     const note = new TabNote(noteStruct);
     if (this.stave) note.setStave(this.stave);
@@ -271,6 +300,25 @@ export class Factory {
     annotation.setFont(params.fontFamily, params.fontSize, params.fontWeight);
     annotation.setContext(this.context);
     return annotation;
+  }
+
+  ChordSymbol(params) {
+    params = setDefaults(params, {
+      text: 'p',
+      vJustify: 'below',
+      hJustify: 'center',
+      fontFamily: 'Times',
+      fontSize: 14,
+      fontWeight: 'bold italic',
+      options: {},
+    });
+
+    const chordSymbol = new ChordSymbol(params.text);
+    chordSymbol.setHorizontalJustification(params.hJustify);
+    chordSymbol.setVerticalJustification(params.vJustify);
+    chordSymbol.setFont(params.fontFamily, params.fontSize, params.fontWeight);
+    chordSymbol.setContext(this.context);
+    return chordSymbol;
   }
 
   Articulation(params) {
@@ -342,12 +390,19 @@ export class Factory {
     return new ModifierContext();
   }
 
+  MultiMeasureRest(params) {
+    const multimeasurerest = new MultiMeasureRest(params.number_of_measures, params);
+    multimeasurerest.setContext(this.context);
+    this.renderQ.push(multimeasurerest);
+    return multimeasurerest;
+  }
+
   Voice(params) {
     params = setDefaults(params, {
       time: '4/4',
       options: {},
     });
-    const voice = new Voice(params.time);
+    const voice = new Voice(params.time, params.options);
     this.voices.push(voice);
     return voice;
   }

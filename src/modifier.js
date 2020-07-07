@@ -61,6 +61,11 @@ export class Modifier extends Element {
     this.spacingFromNextModifier = 0;
   }
 
+  // Called when position changes
+  reset() {
+    // do nothing
+  }
+
   // Every modifier has a category. The `ModifierContext` uses this to determine
   // the type and order of the modifiers.
   getCategory() { return Modifier.CATEGORY; }
@@ -87,6 +92,7 @@ export class Modifier extends Element {
     this.position = typeof(position) === 'string'
       ? Modifier.PositionString[position]
       : position;
+    this.reset();
     return this;
   }
 
@@ -124,8 +130,8 @@ export class Modifier extends Element {
   alignSubNotesWithNote(subNotes, note) {
     // Shift over the tick contexts of each note
     const tickContext = note.getTickContext();
-    const extraPx = tickContext.getExtraPx();
-    const subNoteXOffset = tickContext.getX() - extraPx.left - extraPx.extraLeft
+    const metrics = tickContext.getMetrics();
+    const subNoteXOffset = tickContext.getX() - metrics.modLeftPx - metrics.modRightPx
       + this.getSpacingFromNextModifier();
 
     subNotes.forEach((subNote) => {

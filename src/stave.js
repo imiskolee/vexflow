@@ -29,6 +29,7 @@ export class Stave extends Element {
     this.modifiers = [];  // stave modifiers (clef, key, time, barlines, coda, segno, etc.)
     this.measure = 0;
     this.clef = 'treble';
+    this.endClef = undefined;
     this.font = {
       family: 'sans-serif',
       size: 8,
@@ -76,6 +77,8 @@ export class Stave extends Element {
     if (!this.formatted) this.format();
 
     this.start_x = x;
+    const begBarline = this.modifiers[0];
+    begBarline.setX(this.start_x - begBarline.getWidth());
     return this;
   }
   getNoteStartX() {
@@ -137,11 +140,11 @@ export class Stave extends Element {
   }
 
   getStyle() {
-    return Object.assign({
+    return {
       fillStyle: this.options.fill_style,
       strokeStyle: this.options.fill_style, // yes, this is correct for legacy compatibility
-      lineWidth: Flow.STAVE_LINE_THICKNESS,
-    }, this.style || {});
+      lineWidth: Flow.STAVE_LINE_THICKNESS, ...this.style || {}
+    };
   }
 
   setMeasure(measure) { this.measure = measure; return this; }
@@ -160,6 +163,11 @@ export class Stave extends Element {
     if (!this.formatted) this.format();
 
     if (this.getModifiers(StaveModifier.Position.BEGIN).length === 1) {
+      return 0;
+    }
+
+    // for right position modifiers zero shift seems correct, see 'Volta + Modifier Measure Test'
+    if (this.modifiers[index].getPosition() === StaveModifier.Position.RIGHT) {
       return 0;
     }
 
@@ -276,6 +284,8 @@ export class Stave extends Element {
     return this.getYForLine(3);
   }
 
+  // This method adds a stave modifier to the stave. Note that the first two
+  // modifiers (BarLines) are automatically added upon construction.
   addModifier(modifier, position) {
     if (position !== undefined) {
       modifier.setPosition(position);
@@ -317,7 +327,12 @@ export class Stave extends Element {
       position = StaveModifier.Position.BEGIN;
     }
 
-    this.clef = clefSpec;
+    if (position === StaveModifier.Position.END) {
+      this.endClef = clefSpec;
+    } else {
+      this.clef = clefSpec;
+    }
+
     const clefs = this.getModifiers(position, Clef.CATEGORY);
     if (clefs.length === 0) {
       this.addClef(clefSpec, size, annotation, position);
@@ -374,13 +389,19 @@ export class Stave extends Element {
   }
 
   addKeySignature(keySpec, cancelKeySpec, position) {
-    this.addModifier(new KeySignature(keySpec, cancelKeySpec), position);
+    if (position === undefined) {
+      position = StaveModifier.Position.BEGIN;
+    }
+    this.addModifier(new KeySignature(keySpec, cancelKeySpec)
+      .setPosition(position), position);
     return this;
   }
 
   addClef(clef, size, annotation, position) {
     if (position === undefined || position === StaveModifier.Position.BEGIN) {
       this.clef = clef;
+    } else if (position === StaveModifier.Position.END) {
+      this.endClef = clef;
     }
 
     this.addModifier(new Clef(clef, size, annotation), position);
@@ -409,10 +430,10 @@ export class Stave extends Element {
   }
 
   getModifiers(position, category) {
-    if (position === undefined) return this.modifiers;
+    if (position === undefined && category === undefined) return this.modifiers;
 
     return this.modifiers.filter(modifier =>
-      position === modifier.getPosition() &&
+      (position === undefined || position === modifier.getPosition()) &&
       (category === undefined || category === modifier.getCategory())
     );
   }
@@ -474,18 +495,52 @@ export class Stave extends Element {
     this.start_x = x;
     x = this.x + this.width;
 
+    const widths = {
+      left: 0,
+      right: 0,
+      paddingRight: 0,
+      paddingLeft: 0,
+    };
+
+    let lastBarlineIdx = 0;
+
     for (let i = 0; i < endModifiers.length; i++) {
       modifier = endModifiers[i];
-      x -= modifier.getPadding(i);
-      if (i !== 0) {
-        x -= modifier.getWidth();
+      lastBarlineIdx = (modifier.getCategory() === 'barlines') ? i : lastBarlineIdx;
+
+      widths.right = 0;
+      widths.left = 0;
+      widths.paddingRight = 0;
+      widths.paddingLeft = 0;
+      const layoutMetrics = modifier.getLayoutMetrics();
+
+      if (layoutMetrics) {
+        if (i !== 0) {
+          widths.right = layoutMetrics.xMax || 0;
+          widths.paddingRight = layoutMetrics.paddingRight || 0;
+        }
+        widths.left = (-layoutMetrics.xMin) || 0;
+        widths.paddingLeft = layoutMetrics.paddingLeft || 0;
+
+        if (i === endModifiers.length - 1) {
+          widths.paddingLeft = 0;
+        }
+      } else {
+        widths.paddingRight = modifier.getPadding(i - lastBarlineIdx);
+        if (i !== 0) {
+          widths.right = modifier.getWidth();
+        }
+        if (i === 0) {
+          widths.left = modifier.getWidth();
+        }
       }
+      x -= widths.paddingRight;
+      x -= widths.right;
 
       modifier.setX(x);
 
-      if (i === 0) {
-        x -= modifier.getWidth();
-      }
+      x -= widths.left;
+      x -= widths.paddingLeft;
     }
 
     this.end_x = endModifiers.length === 1 ? this.x + this.width : x;
@@ -524,7 +579,9 @@ export class Stave extends Element {
     for (let i = 0; i < this.modifiers.length; i++) {
       // Only draw modifier if it has a draw function
       if (typeof this.modifiers[i].draw === 'function') {
+        this.modifiers[i].applyStyle(this.context);
         this.modifiers[i].draw(this, this.getModifierXShift(i));
+        this.modifiers[i].restoreStyle(this.context);
       }
     }
 

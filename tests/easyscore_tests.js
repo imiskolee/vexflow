@@ -18,6 +18,7 @@ Vex.Flow.Test.EasyScore = (function() {
       VFT.runTests('Draw Accidentals', VFT.EasyScore.drawAccidentalsTest);
       VFT.runTests('Draw Beams', VFT.EasyScore.drawBeamsTest);
       VFT.runTests('Draw Tuplets', VFT.EasyScore.drawTupletsTest);
+      VFT.runTests('Draw Dots',  VFT.EasyScore.drawDotsTest);
       VFT.runTests('Draw Options', VFT.EasyScore.drawOptionsTest);
     },
 
@@ -220,12 +221,32 @@ Vex.Flow.Test.EasyScore = (function() {
       expect(0);
     },
 
+    drawDotsTest: function(options) {
+      var vf = VF.Test.makeFactory(options, 600, 250);
+      const score = vf.EasyScore();
+      const system = vf.System();
+
+      var voice = score.voice.bind(score);
+      var notes = score.notes.bind(score);
+
+      system.addStave({
+        voices: [
+          voice(
+            notes('(c4 e4 g4)/8., (c4 e4 g4)/8.., (c4 e4 g4)/8..., (c4 e4 g4)/8...., (c4 e4 g4)/16...')
+          )
+        ],
+      }).addClef('treble');
+
+      vf.draw();
+      expect(0);
+    },
+
     drawOptionsTest: function(options) {
       var vf = VF.Test.makeFactory(options, 500, 200);
       const score = vf.EasyScore();
       const system = vf.System();
 
-      const notes = score.notes('B4/h[id="foobar", class="red,bold", stem="up", articulations="staccato.below,tenuto"], B4/h[stem="down"]');
+      const notes = score.notes('B4/h[id="foobar", class="red,bold", stem="up", articulations="staccato.below,tenuto"], B4/q[articulations="accent.above"], B4/q[stem="down"]');
 
       system.addStave({
         voices: [score.voice(notes)],
@@ -244,7 +265,10 @@ Vex.Flow.Test.EasyScore = (function() {
       assert.equal(notes[0].modifiers[1].type, 'a-');
       assert.equal(notes[0].modifiers[1].position, VF.Modifier.Position.ABOVE);
       assert.equal(notes[0].getStemDirection(), VF.StaveNote.STEM_UP);
-      assert.equal(notes[1].getStemDirection(), VF.StaveNote.STEM_DOWN);
+      assert.equal(notes[1].modifiers[0].getCategory(), 'articulations');
+      assert.equal(notes[1].modifiers[0].type, 'a>');
+      assert.equal(notes[1].modifiers[0].position, VF.Modifier.Position.ABOVE);
+      assert.equal(notes[2].getStemDirection(), VF.StaveNote.STEM_DOWN);
     },
   };
 

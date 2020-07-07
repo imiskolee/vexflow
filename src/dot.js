@@ -17,22 +17,26 @@ export class Dot extends Modifier {
     if (!dots || dots.length === 0) return false;
 
     const dot_list = [];
+    const max_shift_map = {};
     for (let i = 0; i < dots.length; ++i) {
       const dot = dots[i];
       const note = dot.getNote();
 
       let props;
       let shift;
+
       // Only StaveNote has .getKeyProps()
       if (typeof note.getKeyProps === 'function') {
         props = note.getKeyProps()[dot.getIndex()];
-        shift = (props.displaced ? note.getExtraRightPx() : 0);
+        shift = note.getRightDisplacedHeadPx();
       } else { // Else it's a TabNote
         props = { line: 0.5 }; // Shim key props for dot placement
         shift = 0;
       }
 
-      dot_list.push({ line: props.line, shift, note, dot });
+      const note_id = note.getAttribute('id');
+      dot_list.push({ line: props.line, note, note_id, dot });
+      max_shift_map[note_id] = Math.max(max_shift_map[note_id] || shift, shift);
     }
 
     // Sort dots by line number.
@@ -46,11 +50,11 @@ export class Dot extends Modifier {
     let half_shiftY = 0;
 
     for (let i = 0; i < dot_list.length; ++i) {
-      const { dot, note, shift, line } = dot_list[i];
+      const { dot, note, note_id, line } = dot_list[i];
 
       // Reset the position of the dot every line.
       if (line !== last_line || note !== last_note) {
-        dot_shift = shift;
+        dot_shift = max_shift_map[note_id];
       }
 
       if (!note.isRest() && line !== last_line) {
@@ -130,7 +134,8 @@ export class Dot extends Modifier {
 
     const lineSpace = this.note.stave.options.spacing_between_lines_px;
 
-    const start = this.note.getModifierStartXY(this.position, this.index);
+    const start = this.note.getModifierStartXY(this.position, this.index,
+      { forceFlagRight: true });
 
     // Set the starting y coordinate to the base of the stem for TabNotes
     if (this.note.getCategory() === 'tabnotes') {

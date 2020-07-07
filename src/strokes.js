@@ -16,10 +16,11 @@ export class Stroke extends Modifier {
     return {
       BRUSH_DOWN: 1,
       BRUSH_UP: 2,
-      ROLL_DOWN: 3,        // Arpegiated chord
-      ROLL_UP: 4,          // Arpegiated chord
+      ROLL_DOWN: 3, // Arpeggiated chord
+      ROLL_UP: 4,   // Arpeggiated chord
       RASQUEDO_DOWN: 5,
       RASQUEDO_UP: 6,
+      ARPEGGIO_DIRECTIONLESS: 7, // Arpeggiated chord without upwards or downwards arrow
     };
   }
 
@@ -33,8 +34,8 @@ export class Stroke extends Modifier {
     const strokeList = strokes.map((stroke) => {
       const note = stroke.getNote();
       if (note instanceof StaveNote) {
-        const { line, displaced } = note.getKeyProps()[stroke.getIndex()];
-        const shift = displaced ? note.getExtraLeftPx() : 0;
+        const { line } = note.getKeyProps()[stroke.getIndex()];
+        const shift = note.getLeftDisplacedHeadPx();
         return { line, shift, stroke };
       } else {
         const { str: string } = note.getPositions()[stroke.getIndex()];
@@ -121,22 +122,23 @@ export class Stroke extends Modifier {
     let arrow_y;
     let text_shift_x;
     let text_y;
+
     switch (this.type) {
       case Stroke.Type.BRUSH_DOWN:
-        arrow = 'vc3';
+        arrow = 'arrowheadBlackUp';
         arrow_shift_x = -3;
         arrow_y = topY - (line_space / 2) + 10;
         botY += (line_space / 2);
         break;
       case Stroke.Type.BRUSH_UP:
-        arrow = 'v11';
+        arrow = 'arrowheadBlackDown';
         arrow_shift_x = 0.5;
         arrow_y = botY + (line_space / 2);
         topY -= (line_space / 2);
         break;
       case Stroke.Type.ROLL_DOWN:
       case Stroke.Type.RASQUEDO_DOWN:
-        arrow = 'vc3';
+        arrow = 'arrowheadBlackUp';
         arrow_shift_x = -3;
         text_shift_x = this.x_shift + arrow_shift_x - 2;
         if (this.note instanceof StaveNote) {
@@ -157,7 +159,7 @@ export class Stroke extends Modifier {
         break;
       case Stroke.Type.ROLL_UP:
       case Stroke.Type.RASQUEDO_UP:
-        arrow = 'v52';
+        arrow = 'arrowheadBlackDown';
         arrow_shift_x = -4;
         text_shift_x = this.x_shift + arrow_shift_x - 1;
         if (this.note instanceof StaveNote) {
@@ -175,14 +177,20 @@ export class Stroke extends Modifier {
           text_y = topY - line_space;
         }
         break;
+      case Stroke.Type.ARPEGGIO_DIRECTIONLESS:
+        topY += 0.5 * line_space;
+        botY += line_space; // * 0.5 can lead to slight underlap instead of overlap sometimes
+        break;
       default:
         throw new Vex.RERR('InvalidType', `The stroke type ${this.type} does not exist`);
     }
 
+    let strokeLine = 'straight';
     // Draw the stroke
     if (this.type === Stroke.Type.BRUSH_DOWN || this.type === Stroke.Type.BRUSH_UP) {
       this.context.fillRect(x + this.x_shift, topY, 1, botY - topY);
     } else {
+      strokeLine = 'wiggly';
       if (this.note instanceof StaveNote) {
         for (let i = topY; i <= botY; i += line_space) {
           Glyph.renderGlyph(
@@ -190,7 +198,7 @@ export class Stroke extends Modifier {
             x + this.x_shift - 4,
             i,
             this.render_options.font_scale,
-            'va3'
+            'vexWiggleArpeggioUp'
           );
         }
       } else {
@@ -201,7 +209,7 @@ export class Stroke extends Modifier {
             x + this.x_shift - 4,
             i,
             this.render_options.font_scale,
-            'va3'
+            'vexWiggleArpeggioUp'
           );
         }
         if (this.type === Stroke.Type.RASQUEDO_DOWN) {
@@ -210,13 +218,18 @@ export class Stroke extends Modifier {
       }
     }
 
+    if (this.type === Stroke.Type.ARPEGGIO_DIRECTIONLESS) {
+      return; // skip drawing arrow heads or text
+    }
+
     // Draw the arrow head
     Glyph.renderGlyph(
       this.context,
       x + this.x_shift + arrow_shift_x,
       arrow_y,
       this.render_options.font_scale,
-      arrow
+      arrow,
+      { category: `stroke.${arrow}.${strokeLine}` }
     );
 
     // Draw the rasquedo "R"

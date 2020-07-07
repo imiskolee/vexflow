@@ -5,27 +5,30 @@
 
 VF.Test.Formatter = (function() {
   var run = VF.Test.runTests;
+  var runSVG = VF.Test.runSVGTest;
 
   var Formatter = {
     Start: function() {
       QUnit.module('Formatter');
       test('TickContext Building', Formatter.buildTickContexts);
-      run('StaveNote Formatting', Formatter.formatStaveNotes);
-      run('StaveNote Justification', Formatter.justifyStaveNotes);
-      run('Notes with Tab', Formatter.notesWithTab);
-      run('Multiple Staves - No Justification', Formatter.multiStaves, { justify: false, iterations: 0 });
-      run('Multiple Staves - Justified', Formatter.multiStaves, { justify: true, iterations: 0 });
-      run('Multiple Staves - Justified - 6 Iterations', Formatter.multiStaves, { justify: true, iterations: 6 });
-      run('Proportional Formatting - no tuning', Formatter.proportionalFormatting, { debug: false, iterations: 0 });
-      run('Proportional Formatting - 15 steps', Formatter.proportionalFormatting, { debug: false, iterations: 15 });
+      runSVG('StaveNote - No Justification', Formatter.formatStaveNotes);
+      runSVG('StaveNote - Justification', Formatter.justifyStaveNotes);
+      runSVG('Notes with Tab', Formatter.notesWithTab);
+      runSVG('Multiple Staves - No Justification', Formatter.multiStaves, { justify: false, iterations: 0, debug: true });
+      runSVG('Multiple Staves - Justified', Formatter.multiStaves, { justify: true, iterations: 0 });
+      runSVG('Multiple Staves - Justified - 6 Iterations', Formatter.multiStaves, { justify: true, iterations: 4, alpha: 0.01 });
+      runSVG('Softmax', Formatter.softMax);
+      runSVG('Mixtime', Formatter.mixTime);
+      runSVG('Tight', Formatter.tightNotes);
+      runSVG('Tight 2', Formatter.tightNotes2);
+      runSVG('Annotations', Formatter.annotations);
+      runSVG('Proportional Formatting - No Justification', Formatter.proportionalFormatting, { justify: false, debug: true, iterations: 0 });
+      run('Proportional Formatting - No Tuning', Formatter.proportionalFormatting, { debug: true, iterations: 0 });
 
-      for (var i = 2; i < 15; i++) {
-        VF.Test.runSVGTest(
-          'Proportional Formatting (' + i + ' iterations)',
-          Formatter.proportionalFormatting,
-          { debug: true, iterations: i }
-        );
-      }
+      VF.Test.runSVGTest('Proportional Formatting (20 iterations)',
+        Formatter.proportionalFormatting,
+        { debug: true, iterations: 20, alpha: 0.5 }
+      );
     },
 
     buildTickContexts: function() {
@@ -67,21 +70,21 @@ VF.Test.Formatter = (function() {
       // );
 
       ok(formatter.preCalculateMinTotalWidth([voice1, voice2]), 'Successfully runs preCalculateMinTotalWidth');
-      equal(formatter.getMinTotalWidth(), 104, 'Get minimum total width without passing voices');
+      equal(formatter.getMinTotalWidth(), 88, 'Get minimum total width without passing voices');
 
       formatter.preFormat();
 
-      equal(formatter.getMinTotalWidth(), 104, 'Minimum total width');
+      equal(formatter.getMinTotalWidth(), 88, 'Minimum total width');
       equal(tickables1[0].getX(), tickables2[0].getX(), 'First notes of both voices have the same X');
       equal(tickables1[2].getX(), tickables2[2].getX(), 'Last notes of both voices have the same X');
       ok(tickables1[1].getX() < tickables2[1].getX(), 'Second note of voice 2 is to the right of the second note of voice 1');
     },
 
     formatStaveNotes: function(options) {
-      var vf = VF.Test.makeFactory(options, 500, 250);
+      var vf = VF.Test.makeFactory(options, 500, 280);
       var score = vf.EasyScore();
 
-      vf.Stave({ y: 40 });
+      vf.Stave({ y: 50 });
 
       var notes1 = score.notes(
         '(cb4 e#4 a4)/2, (d4 e4 f4)/4, (cn4 f#4 a4)',
@@ -103,11 +106,11 @@ VF.Test.Formatter = (function() {
       var ctx = vf.getContext();
 
       notes1.forEach(function(note) {
-        VF.Test.plotNoteWidth(ctx, note, 180);
+        VF.Test.plotNoteWidth(ctx, note, 190);
       });
 
       notes2.forEach(function(note) {
-        VF.Test.plotNoteWidth(ctx, note, 15);
+        VF.Test.plotNoteWidth(ctx, note, 35);
       });
 
       VF.Test.plotLegendForNoteWidth(ctx, 300, 180);
@@ -223,7 +226,7 @@ VF.Test.Formatter = (function() {
         .addTrebleGlyph()
         .addTimeSignature('6/8');
 
-      var notes21 = score.notes('d4/8, d4, d4, d4, eb4, eb4');
+      var notes21 = score.notes('d4/8, d4, d4, d4, e4, eb4');
       var voice21 = score.voice(notes21, { time: '6/8' });
 
       var stave31 = vf.Stave({ y: 250, width: 275 })
@@ -274,7 +277,7 @@ VF.Test.Formatter = (function() {
         width: stave21.width,
       });
 
-      var notes22 = score.notes('(eb4 ab4)/4., (eb4 ab4 c4)/4, db5/8', { stem: 'up' });
+      var notes22 = score.notes('(eb4 ab4)/4., (c4 eb4 ab4)/4, db5/8', { stem: 'up' });
       var voice22 = score.voice(notes22, { time: '6/8' });
 
       vf.Stave({
@@ -313,12 +316,14 @@ VF.Test.Formatter = (function() {
       var debug = options.params.debug;
       VF.Registry.enableDefaultRegistry(new VF.Registry());
 
-      var vf = VF.Test.makeFactory(options, 600, 750);
+      var vf = VF.Test.makeFactory(options, 650, 750);
       var system = vf.System({
         x: 50,
         width: 500,
         debugFormatter: debug,
+        noJustification: !(options.params.justify === undefined && true),
         formatIterations: options.params.iterations,
+        options: { alpha: options.params.alpha }
       });
 
       var score = vf.EasyScore();
@@ -357,11 +362,224 @@ VF.Test.Formatter = (function() {
       ok(true);
     },
 
-    TIME6_8: {
-      num_beats: 6,
-      beat_value: 8,
-      resolution: VF.RESOLUTION,
+    softMax: function(options) {
+      var vf = VF.Test.makeFactory(options, 550, 500);
+      vf.getContext().scale(0.8, 0.8);
+
+      function draw(y, factor) {
+        var score = vf.EasyScore();
+        var system = vf.System({
+          x: 100,
+          y,
+          width: 500,
+          details: { softmaxFactor: factor }
+        });
+
+        system.addStave({
+          voices: [
+            score.voice(
+              score.notes('C#5/h, a4/q')
+                .concat(score.beam(score.notes('Abb4/8, A4/8')))
+                .concat(score.beam(score.notes('A4/16, A#4, A4, Ab4/32, A4'))),
+              { time: '5/4' })
+          ]
+        }).addClef('treble').addTimeSignature('5/4');
+
+        vf.draw();
+        ok(true);
+      }
+
+      draw(50, 1);
+      draw(150, 2);
+      draw(250, 10);
+      draw(350, 20);
+      draw(450, 200);
     },
+
+    mixTime: function(options) {
+      var vf = VF.Test.makeFactory(options, 420, 250);
+      vf.getContext().scale(0.8, 0.8);
+      var score = vf.EasyScore();
+      var system = vf.System({
+        details: { softmaxFactor: 100 },
+        width: 500, debugFormatter: true
+      });
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.notes('C#5/q, B4')
+              .concat(score.beam(score.notes('A4/8, E4, C4, D4')))
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.notes('C#5/q, B4, B4')
+              .concat(
+                score.tuplet(score.beam(score.notes('A4/8, E4, C4'))))
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      vf.draw();
+      ok(true);
+    },
+
+    tightNotes: function(options) {
+      var vf = VF.Test.makeFactory(options, 420, 250);
+      vf.getContext().scale(0.8, 0.8);
+      var score = vf.EasyScore();
+      var system = vf.System({
+        width: 400, debugFormatter: true
+      });
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.beam(score.notes('B4/16, B4, B4, B4, B4, B4, B4, B4'))
+              .concat(score.notes('B4/q, B4'))
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.notes('B4/q, B4').concat(score.beam(score.notes('B4/16, B4, B4, B4, B4, B4, B4, B4')))
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      vf.draw();
+      ok(true);
+    },
+
+    tightNotes2: function(options) {
+      var vf = VF.Test.makeFactory(options, 420, 250);
+      vf.getContext().scale(0.8, 0.8);
+      var score = vf.EasyScore();
+      var system = vf.System({
+        width: 400, debugFormatter: true
+      });
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.beam(score.notes('B4/16, B4, B4, B4, B4, B4, B4, B4'))
+              .concat(score.notes('B4/q, B4'))
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      system.addStave({
+        voices: [
+          score.voice(
+            score.notes('B4/w')
+          )
+        ]
+      }).addClef('treble').addTimeSignature('4/4');
+
+      vf.draw();
+      ok(true);
+    },
+
+    annotations: function(options) {
+      const pageWidth = 816;
+      const pageHeight = 600;
+      const vf = VF.Test.makeFactory(options, pageWidth, pageHeight);
+      const context = vf.getContext();
+
+      var lyrics1 = ['ipso', 'ipso-', 'ipso', 'ipso', 'ipsoz', 'ipso-', 'ipso', 'ipso', 'ipso', 'ip', 'ipso'];
+      var lyrics2 = ['ipso', 'ipso-', 'ipsoz', 'ipso', 'ipso', 'ipso-', 'ipso', 'ipso', 'ipso', 'ip', 'ipso'];
+
+      var smar = [{
+        sm: 5,
+        width: 450,
+        lyrics: lyrics1,
+        title: '450px,softMax:5'
+      }, {
+        sm: 5,
+        width: 450,
+        lyrics: lyrics2,
+        title: '450px,softmax:5,different word order'
+      },
+      {
+        sm: 5,
+        width: 460,
+        lyrics: lyrics2,
+        title: '460px,softmax:5'
+      }, {
+        sm: 100,
+        width: 460,
+        lyrics: lyrics2,
+        title: '460px,softmax:100'
+      }];
+
+      var rowSize = 140;
+      var beats = 12;
+      var beatsPer = 8;
+      var beamGroup = 3;
+
+      var durations = ['8d', '16', '8', '8d', '16', '8', '8d', '16', '8', '4', '8'];
+      var beams = [];
+      var y = 40;
+
+      smar.forEach((sm) => {
+        var stave = new VF.Stave(10, y, sm.width);
+        var notes = [];
+        var iii = 0;
+        context.fillText(sm.title, 100, y);
+        y += rowSize;
+
+        durations.forEach((dd) => {
+          var newNote = new VF.StaveNote({ keys: ['b/4'], duration: dd });
+          if (dd.indexOf('d') >= 0) { newNote.addDotToAll(); }
+          if (sm.lyrics.length > iii) {
+            newNote.addAnnotation(0,
+              new VF.Annotation(sm.lyrics[iii])
+                .setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM)
+                .setFont('Times', 12, 'normal'));
+          }
+          notes.push(newNote);
+          iii += 1;
+        });
+
+        notes.forEach((note) => { if (note.duration.indexOf('d') >= 0) { note.addDotToAll(); } });
+
+        // Don't beam the last group
+        var beam = [];
+        notes.forEach((note) => {
+          if (note.intrinsicTicks < 4096) {
+            beam.push(note);
+            if (beam.length >= beamGroup) {
+              beams.push(
+                new VF.Beam(beam)
+              );
+              beam = [];
+            }
+          } else {
+            beam = [];
+          }
+        });
+
+        var voice1 = new VF.Voice({ num_beats: beats, beat_value: beatsPer }).setMode(Vex.Flow.Voice.Mode.SOFT).addTickables(notes);
+
+        var fmt = new VF.Formatter({ softmaxFactor: sm.sm }).joinVoices([voice1]);
+        fmt.format([voice1], sm.width - 11);
+
+        stave.setContext(context).draw();
+        voice1.draw(context, stave);
+
+        beams.forEach(function(b) {
+          b.setContext(context).draw();
+        });
+      });
+
+      ok(true);
+    }
   };
 
   return Formatter;

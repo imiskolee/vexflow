@@ -141,7 +141,7 @@ export class TabNote extends StemmableNote {
       font: '10pt Arial',
     });
 
-    this.glyph = Flow.durationToGlyph(this.duration, this.noteType);
+    this.glyph = Flow.getGlyphProps(this.duration, this.noteType);
 
     if (!this.glyph) {
       throw new Vex.RuntimeError(
@@ -309,9 +309,9 @@ export class TabNote extends StemmableNote {
 
     let x = 0;
     if (position === Modifier.Position.LEFT) {
-      x = -1 * 2;  // extra_left_px
+      x = -1 * 2;  // FIXME: modifier padding, move to font file
     } else if (position === Modifier.Position.RIGHT) {
-      x = this.width + 2; // extra_right_px
+      x = this.width + 2; // FIXME: modifier padding, move to font file
     } else if (position === Modifier.Position.BELOW || position === Modifier.Position.ABOVE) {
       const note_glyph_width = this.glyph.getWidth();
       x = note_glyph_width / 2;
@@ -374,7 +374,7 @@ export class TabNote extends StemmableNote {
         : glyph.code_flag_upstem;
 
       // Draw the Flag
-      Glyph.renderGlyph(context, flag_x, flag_y, glyph_font_scale, flag_code);
+      Glyph.renderGlyph(context, flag_x, flag_y, glyph_font_scale, flag_code, { category: 'flag.tabStem' });
     }
   }
 
@@ -386,7 +386,7 @@ export class TabNote extends StemmableNote {
       if (modifier.getCategory() === 'dots' && !this.render_options.draw_dots) return;
 
       modifier.setContext(this.context);
-      modifier.draw();
+      modifier.drawWithStyle();
     });
   }
 

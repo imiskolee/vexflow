@@ -17,6 +17,7 @@ import { StringNumber } from './stringnumber';
 import { Articulation } from './articulation';
 import { Ornament } from './ornament';
 import { Annotation } from './annotation';
+import { ChordSymbol } from './chordsymbol';
 import { Bend } from './bend';
 import { Vibrato } from './vibrato';
 
@@ -47,13 +48,14 @@ export class ModifierContext {
       Dot,
       FretHandFinger,
       Accidental,
+      Stroke,
       GraceNoteGroup,
       NoteSubGroup,
-      Stroke,
       StringNumber,
       Articulation,
       Ornament,
       Annotation,
+      ChordSymbol,
       Bend,
       Vibrato,
     ];
@@ -73,8 +75,8 @@ export class ModifierContext {
 
   getModifiers(type) { return this.modifiers[type]; }
   getWidth() { return this.width; }
-  getExtraLeftPx() { return this.state.left_shift; }
-  getExtraRightPx() { return this.state.right_shift; }
+  getLeftShift() { return this.state.left_shift; }
+  getRightShift() { return this.state.right_shift; }
   getState() { return this.state; }
 
   getMetrics() {
@@ -85,8 +87,6 @@ export class ModifierContext {
     return {
       width: this.state.left_shift + this.state.right_shift + this.spacing,
       spacing: this.spacing,
-      extra_left_px: this.state.left_shift,
-      extra_right_px: this.state.right_shift,
     };
   }
 

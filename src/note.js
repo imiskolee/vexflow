@@ -16,22 +16,21 @@ import { Tickable } from './tickable';
 
 export class Note extends Tickable {
   static get CATEGORY() { return 'note'; }
-  static get STAVEPADDING() { return 12; }
 
   // Debug helper. Displays various note metrics for the given
   // note.
   static plotMetrics(ctx, note, yPos) {
     const metrics = note.getMetrics();
-    const xStart = note.getAbsoluteX() - metrics.modLeftPx - metrics.extraLeftPx;
-    const xPre1 = note.getAbsoluteX() - metrics.extraLeftPx;
+    const xStart = note.getAbsoluteX() - metrics.modLeftPx - metrics.leftDisplacedHeadPx;
+    const xPre1 = note.getAbsoluteX() - metrics.leftDisplacedHeadPx;
     const xAbs = note.getAbsoluteX();
-    const xPost1 = note.getAbsoluteX() + metrics.noteWidth;
-    const xPost2 = note.getAbsoluteX() + metrics.noteWidth + metrics.extraRightPx;
+    const xPost1 = note.getAbsoluteX() + metrics.notePx;
+    const xPost2 = note.getAbsoluteX() + metrics.notePx + metrics.rightDisplacedHeadPx;
     const xEnd = note.getAbsoluteX()
-      + metrics.noteWidth
-      + metrics.extraRightPx
+      + metrics.notePx
+      + metrics.rightDisplacedHeadPx
       + metrics.modRightPx;
-    const xFreedomRight = xEnd + note.getFormatterMetrics().freedom.right;
+    const xFreedomRight = xEnd + (note.getFormatterMetrics().freedom.right || 0);
 
     const xWidth = xEnd - xStart;
     ctx.save();
@@ -69,9 +68,77 @@ export class Note extends Tickable {
     ctx.restore();
   }
 
+  static parseDuration(durationString) {
+    if (typeof (durationString) !== 'string') { return null; }
+
+    const regexp = /(\d*\/?\d+|[a-z])(d*)([nrhms]|$)/;
+    const result = regexp.exec(durationString);
+    if (!result) { return null; }
+
+    const duration = result[1];
+    const dots = result[2].length;
+    const type = result[3] || 'n';
+
+    return { duration, dots, type };
+  }
+
+  static parseNoteStruct(noteStruct) {
+    const durationString = noteStruct.duration;
+    const customTypes = [];
+
+    // Preserve backwards-compatibility
+    const durationProps = Note.parseDuration(durationString);
+    if (!durationProps) { return null; }
+
+    // If specified type is invalid, return null
+    let type = noteStruct.type;
+    if (type && !Flow.getGlyphProps.validTypes[type]) { return null; }
+
+
+    // If no type specified, check duration or custom types
+    if (!type) {
+      type = durationProps.type || 'n';
+
+      // If we have keys, try and check if we've got a custom glyph
+      if (noteStruct.keys !== undefined) {
+        noteStruct.keys.forEach((k, i) => {
+          const result = k.split('/');
+          // We have a custom glyph specified after the note eg. /X2
+          customTypes[i] = (result && result.length === 3) ? result[2] : type;
+        });
+      }
+    }
+
+    // Calculate the tick duration of the note
+    let ticks = Flow.durationToTicks(durationProps.duration);
+    if (ticks == null) { return null; }
+
+    // Are there any dots?
+    const dots = noteStruct.dots ? noteStruct.dots : durationProps.dots;
+    if (typeof (dots) !== 'number') { return null; }
+
+    // Add ticks as necessary depending on the numbr of dots
+    let currentTicks = ticks;
+    for (let i = 0; i < dots; i++) {
+      if (currentTicks <= 1) return null;
+
+      currentTicks = currentTicks / 2;
+      ticks += currentTicks;
+    }
+
+    return {
+      duration: durationProps.duration,
+      type,
+      customTypes,
+      dots,
+      ticks,
+    };
+  }
+
+
   // Every note is a tickable, i.e., it can be mutated by the `Formatter` class for
   // positioning and layout.
-  // To create a new note you need to provide a `note_struct`, which consists
+  // To create a new note you need to provide a `noteStruct`, which consists
   // of the following fields:
   //
   // `type`: The note type (e.g., `r` for rest, `s` for slash notes, etc.)
@@ -79,41 +146,43 @@ export class Note extends Tickable {
   // `duration`: The time length (e.g., `q` for quarter, `h` for half, `8` for eighth etc.)
   //
   // The range of values for these parameters are available in `src/tables.js`.
-  constructor(note_struct) {
+  constructor(noteStruct) {
     super();
     this.setAttribute('type', 'Note');
 
-    if (!note_struct) {
+    if (!noteStruct) {
       throw new Vex.RuntimeError(
         'BadArguments', 'Note must have valid initialization data to identify duration and type.'
       );
     }
 
-    // Parse `note_struct` and get note properties.
-    const initData = Flow.parseNoteData(note_struct);
-    if (!initData) {
+    // Parse `noteStruct` and get note properties.
+    const initStruct = Note.parseNoteStruct(noteStruct);
+    if (!initStruct) {
       throw new Vex.RuntimeError(
-        'BadArguments', `Invalid note initialization object: ${JSON.stringify(note_struct)}`
+        'BadArguments', `Invalid note initialization object: ${JSON.stringify(noteStruct)}`
       );
     }
 
     // Set note properties from parameters.
-    this.duration = initData.duration;
-    this.dots = initData.dots;
-    this.noteType = initData.type;
+    this.duration = initStruct.duration;
+    this.dots = initStruct.dots;
+    this.noteType = initStruct.type;
+    this.customTypes = initStruct.customTypes;
 
-    if (note_struct.duration_override) {
+    if (noteStruct.duration_override) {
       // Custom duration
-      this.setDuration(note_struct.duration_override);
+      this.setDuration(noteStruct.duration_override);
     } else {
       // Default duration
-      this.setIntrinsicTicks(initData.ticks);
+      this.setIntrinsicTicks(initStruct.ticks);
     }
 
     this.modifiers = [];
 
     // Get the glyph code for this note from the font.
-    this.glyph = Flow.durationToGlyph(this.duration, this.noteType);
+    this.glyph = Flow.getGlyphProps(this.duration, this.noteType);
+    this.customGlyphs = this.customTypes.map(t => Flow.getGlyphProps(this.duration, t));
 
     if (this.positions && (typeof (this.positions) !== 'object' || !this.positions.length)) {
       throw new Vex.RuntimeError('BadArguments', 'Note keys must be array type.');
@@ -129,25 +198,22 @@ export class Note extends Tickable {
 
     // Positioning variables
     this.width = 0;             // Width in pixels calculated after preFormat
-    this.extraLeftPx = 0;       // Extra room on left for offset note head
-    this.extraRightPx = 0;      // Extra room on right for offset note head
+    this.leftDisplacedHeadPx = 0;       // Extra room on left for displaced note head
+    this.rightDisplacedHeadPx = 0;      // Extra room on right for displaced note head
     this.x_shift = 0;           // X shift from tick context X
-    this.left_modPx = 0;        // Max width of left modifiers
-    this.right_modPx = 0;       // Max width of right modifiers
     this.voice = null;          // The voice that this note is in
     this.preFormatted = false;  // Is this note preFormatted?
     this.ys = [];               // list of y coordinates for each note
     // we need to hold on to these for ties and beams.
 
-    if (note_struct.align_center) {
-      this.setCenterAlignment(note_struct.align_center);
+    if (noteStruct.align_center) {
+      this.setCenterAlignment(noteStruct.align_center);
     }
 
     // The render surface.
     this.stave = null;
     this.render_options = {
       annotation_spacing: 5,
-      stave_padding: Note.STAVEPADDING,
     };
   }
 
@@ -186,10 +252,10 @@ export class Note extends Tickable {
   setContext(context) { this.context = context; return this; }
 
   // Get and set spacing to the left and right of the notes.
-  getExtraLeftPx() { return this.extraLeftPx; }
-  getExtraRightPx() { return this.extraRightPx; }
-  setExtraLeftPx(x) { this.extraLeftPx = x; return this; }
-  setExtraRightPx(x) { this.extraRightPx = x; return this; }
+  getLeftDisplacedHeadPx() { return this.leftDisplacedHeadPx; }
+  getRightDisplacedHeadPx() { return this.rightDisplacedHeadPx; }
+  setLeftDisplacedHeadPx(x) { this.leftDisplacedHeadPx = x; return this; }
+  setRightDisplacedHeadPx(x) { this.rightDisplacedHeadPx = x; return this; }
 
   // Returns true if this note has no duration (e.g., bar notes, spacers, etc.)
   shouldIgnoreTicks() { return this.ignore_ticks; }
@@ -204,7 +270,16 @@ export class Note extends Tickable {
   getGlyph() { return this.glyph; }
 
   getGlyphWidth() {
-    return this.glyph.getWidth(this.render_options.glyph_font_scale);
+    // TODO: FIXME (multiple potential values for this.glyph)
+    if (this.glyph) {
+      if (this.glyph.getMetrics) {
+        return this.glyph.getMetrics().width;
+      } else if (this.glyph.getWidth) {
+        return this.glyph.getWidth(this.render_options.glyph_font_scale);
+      }
+    }
+
+    return 0;
   }
 
   // Set and get Y positions for this note. Each Y value is associated with
@@ -288,61 +363,43 @@ export class Note extends Tickable {
   //
   // Returns a struct with fields:
   // `width`: The total width of the note (including modifiers.)
-  // `noteWidth`: The width of the note head only.
+  // `notePx`: The width of the note head only.
   // `left_shift`: The horizontal displacement of the note.
   // `modLeftPx`: Start `X` for left modifiers.
   // `modRightPx`: Start `X` for right modifiers.
-  // `extraLeftPx`: Extra space on left of note.
-  // `extraRightPx`: Extra space on right of note.
+  // `leftDisplacedHeadPx`: Extra space on left of note.
+  // `rightDisplacedHeadPx`: Extra space on right of note.
   getMetrics() {
     if (!this.preFormatted) {
       throw new Vex.RERR('UnformattedNote', "Can't call getMetrics on an unformatted note.");
     }
 
-    let modLeftPx = 0;
-    let modRightPx = 0;
-    if (this.modifierContext != null) {
-      modLeftPx = this.modifierContext.state.left_shift;
-      modRightPx = this.modifierContext.state.right_shift;
-    }
-
+    const modLeftPx = this.modifierContext ? this.modifierContext.state.left_shift : 0;
+    const modRightPx = this.modifierContext ? this.modifierContext.state.right_shift : 0;
     const width = this.getWidth();
-    return {
-      width,
-      noteWidth: width - modLeftPx - modRightPx - this.extraLeftPx - this.extraRightPx,
-      left_shift: this.x_shift, // TODO(0xfe): Make style consistent
+    const glyphWidth = this.getGlyphWidth();
+    const notePx = width
+      - modLeftPx           // subtract left modifiers
+      - modRightPx          // subtract right modifiers
+      - this.leftDisplacedHeadPx   // subtract left displaced head
+      - this.rightDisplacedHeadPx;  // subtract right displaced head
 
-      // Modifiers, accidentals etc.
+    return {
+      // ----------
+      // NOTE: If you change this, remember to update MockTickable in the tests/ directory.
+      // --------------
+      width,
+      glyphWidth,
+      notePx,
+
+      // Modifier spacing.
       modLeftPx,
       modRightPx,
 
       // Displaced note head on left or right.
-      extraLeftPx: this.extraLeftPx,
-      extraRightPx: this.extraRightPx,
+      leftDisplacedHeadPx: this.leftDisplacedHeadPx,
+      rightDisplacedHeadPx: this.rightDisplacedHeadPx,
     };
-  }
-
-  // Get and set width of note. Used by the formatter for positioning.
-  setWidth(width) { this.width = width; }
-  getWidth() {
-    if (!this.preFormatted) {
-      throw new Vex.RERR('UnformattedNote', "Can't call GetWidth on an unformatted note.");
-    }
-
-    return this.width + (this.modifierContext ? this.modifierContext.getWidth() : 0);
-  }
-
-  // Displace note by `x` pixels. Used by the formatter.
-  setXShift(x) { this.x_shift = x; return this; }
-  getXShift() { return this.x_shift; }
-
-  // Get `X` position of this tick context.
-  getX() {
-    if (!this.tickContext) {
-      throw new Vex.RERR('NoTickContext', 'Note needs a TickContext assigned for an X-Value');
-    }
-
-    return this.tickContext.getX() + this.x_shift;
   }
 
   // Get the absolute `X` position of this note's tick context. This
@@ -356,7 +413,7 @@ export class Note extends Tickable {
     // Position note to left edge of tick context.
     let x = this.tickContext.getX();
     if (this.stave) {
-      x += this.stave.getNoteStartX() + this.render_options.stave_padding;
+      x += this.stave.getNoteStartX() + this.musicFont.lookupMetric('stave.padding');
     }
 
     if (this.isCenterAligned()) {
@@ -365,14 +422,8 @@ export class Note extends Tickable {
 
     return x;
   }
+
   setPreFormatted(value) {
     this.preFormatted = value;
-
-    // Maintain the width of left and right modifiers in pixels.
-    if (this.preFormatted) {
-      const extra = this.tickContext.getExtraPx();
-      this.left_modPx = Math.max(this.left_modPx, extra.left);
-      this.right_modPx = Math.max(this.right_modPx, extra.right);
-    }
   }
 }

@@ -6,9 +6,12 @@
 import { Vex } from './vex';
 import { Modifier } from './modifier';
 import { Glyph } from './glyph';
+import { GraceNote } from './gracenote';
+import { Stem } from './stem';
 
 export class Tremolo extends Modifier {
   static get CATEGORY() { return 'tremolo'; }
+
   constructor(num) {
     super();
     this.setAttribute('type', 'Tremolo');
@@ -17,21 +20,7 @@ export class Tremolo extends Modifier {
     this.note = null;
     this.index = null;
     this.position = Modifier.Position.CENTER;
-    this.code = 'v74';
-    this.shift_right = -2;
-    this.y_spacing = 4;
-
-    this.render_options = {
-      font_scale: 35,
-      stroke_px: 3,
-      stroke_spacing: 10,
-    };
-
-    this.font = {
-      family: 'Arial',
-      size: 16,
-      weight: '',
-    };
+    this.code = 'tremolo1';
   }
 
   getCategory() { return Tremolo.CATEGORY; }
@@ -44,13 +33,39 @@ export class Tremolo extends Modifier {
     }
 
     this.setRendered();
+    const stemDirection = this.note.getStemDirection();
+
     const start = this.note.getModifierStartXY(this.position, this.index);
     let x = start.x;
-    let y = start.y;
+    const isGraceNote =  this.note.getCategory() === 'gracenotes';
+    const scale = isGraceNote ? GraceNote.SCALE : 1;
+    const category = `tremolo.${isGraceNote ? 'grace' : 'default'}`;
 
-    x += this.shift_right;
+    this.y_spacing = this.musicFont.lookupMetric(`${category}.spacing`) * stemDirection;
+    const height = this.num * this.y_spacing;
+    let y = this.note.stem.getExtents().baseY - height;
+
+    if (stemDirection < 0) {
+      y += this.musicFont.lookupMetric(`${category}.offsetYStemDown`) * scale;
+    } else {
+      y += this.musicFont.lookupMetric(`${category}.offsetYStemUp`) * scale;
+    }
+
+    this.font = {
+      family: 'Arial',
+      size: 16 * scale,
+      weight: '',
+    };
+
+    this.render_options = {
+      font_scale: this.musicFont.lookupMetric(`${category}.point`),
+      stroke_px: 3,
+      stroke_spacing: 10 * scale,
+    };
+
+    x += this.musicFont.lookupMetric(`${category}.offsetXStem${stemDirection === Stem.UP ? 'Up' : 'Down'}`);
     for (let i = 0; i < this.num; ++i) {
-      Glyph.renderGlyph(this.context, x, y, this.render_options.font_scale, this.code);
+      Glyph.renderGlyph(this.context, x, y, this.render_options.font_scale, this.code, { category });
       y += this.y_spacing;
     }
   }

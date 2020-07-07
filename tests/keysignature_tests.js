@@ -56,7 +56,10 @@ VF.Test.KeySignature = (function() {
       VF.Test.runTests('Minor Key Test', VF.Test.KeySignature.minorKeys);
       VF.Test.runTests('Stave Helper', VF.Test.KeySignature.staveHelper);
       VF.Test.runTests('Cancelled key test', VF.Test.KeySignature.majorKeysCanceled);
+      VF.Test.runTests('Cancelled key (for each clef) test', VF.Test.KeySignature.keysCanceledForEachClef);
       VF.Test.runTests('Altered key test', VF.Test.KeySignature.majorKeysAltered);
+      VF.Test.runTests('End key with clef test', VF.Test.KeySignature.endKeyWithClef);
+      VF.Test.runTests('Key Signature Change test', VF.Test.KeySignature.changeKey);
     },
 
     parser: function() {
@@ -164,6 +167,35 @@ VF.Test.KeySignature = (function() {
       ok(true, 'all pass');
     },
 
+    keysCanceledForEachClef: function(options, contextBuilder) {
+      var ctx = new contextBuilder(options.elementId, 600, 380);
+      ctx.scale(0.8, 0.8);
+      var keys = [
+        'C#',
+        'Cb'
+      ];
+
+      var x = 20;
+      var y = 20;
+      var tx = x;
+      ['bass', 'tenor', 'soprano', 'mezzo-soprano', 'baritone-f'].forEach(function(clef) {
+        keys.forEach(function(key) {
+          var cancelKey = key === keys[0] ? keys[1] : keys[0];
+          var vStave = new Vex.Flow.Stave(tx, y, 350);
+          vStave.setClef(clef);
+          vStave.addKeySignature(cancelKey);
+          vStave.addKeySignature(key, cancelKey);
+          vStave.addKeySignature(key);
+          vStave.setContext(ctx).draw();
+          tx += 350;
+        });
+        tx = x;
+        y += 80;
+      });
+
+      ok(true, 'all pass');
+    },
+
     majorKeysAltered: function(options, contextBuilder) {
       var ctx = new contextBuilder(options.elementId, 780, 500);
       ctx.scale(0.9, 0.9);
@@ -240,6 +272,27 @@ VF.Test.KeySignature = (function() {
 
       ok(true, 'all pass');
     },
+    endKeyWithClef: function(options, contextBuilder) {
+      var ctx = new contextBuilder(options.elementId, 400, 200);
+      ctx.scale(0.9, 0.9);
+      var stave1 = new VF.Stave(10, 10, 350);
+      stave1.setKeySignature('G')
+        .setBegBarType(VF.Barline.type.REPEAT_BEGIN)
+        .setEndBarType(VF.Barline.type.REPEAT_END)
+        .setClef('treble')
+        .addTimeSignature('4/4')
+        .setEndClef('bass')
+        .setEndKeySignature('Cb');
+      var stave2 = new VF.Stave(10, 90, 350);
+      stave2.setKeySignature('Cb')
+        .setClef('bass')
+        .setEndClef('treble')
+        .setEndKeySignature('G');
+
+      stave1.setContext(ctx).draw();
+      stave2.setContext(ctx).draw();
+      ok(true, 'all pass');
+    },
 
     staveHelper: function(options, contextBuilder) {
       var ctx = new contextBuilder(options.elementId, 400, 240);
@@ -262,6 +315,36 @@ VF.Test.KeySignature = (function() {
 
       ok(true, 'all pass');
     },
+
+    changeKey: function(options) {
+      var vf = VF.Test.makeFactory(options, 900);
+
+      var stave = vf.Stave(10, 10, 800)
+        .addClef('treble')
+        .addTimeSignature('C|');
+
+      var voice = vf.Voice().setStrict(false).addTickables([
+        vf.KeySigNote({ key: 'Bb' }),
+        vf.StaveNote({ keys: ['c/4'], duration: '1' }),
+        vf.BarNote(),
+        vf.KeySigNote({ key: 'D', cancelKey: 'Bb' }),
+        vf.StaveNote({ keys: ['c/4'], duration: '1' }),
+        vf.BarNote(),
+        vf.KeySigNote({ key: 'Bb' }),
+        vf.StaveNote({ keys: ['c/4'], duration: '1' }),
+        vf.BarNote(),
+        vf.KeySigNote({ key: 'D', alterKey: ['b', 'n'] }),
+        vf.StaveNote({ keys: ['c/4'], duration: '1' }),
+      ]);
+
+      vf.Formatter()
+        .joinVoices([voice])
+        .formatToStave([voice], stave);
+
+      vf.draw();
+
+      ok(true, 'all pass');
+    }
   };
 
   return KeySignature;

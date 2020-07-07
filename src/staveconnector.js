@@ -149,6 +149,8 @@ export class StaveConnector extends Element {
         break;
       case StaveConnector.type.DOUBLE:
         topX -= (this.width + 2);
+        topY -= this.thickness;
+        attachment_height += 0.5;
         break;
       case StaveConnector.type.BRACE: {
         width = 12;
@@ -185,21 +187,22 @@ export class StaveConnector extends Element {
         ctx.stroke();
         break;
       } case StaveConnector.type.BRACKET:
-        topY -= 4;
-        botY += 4;
+        topY -= 6;
+        botY += 6;
         attachment_height = botY - topY;
-        Glyph.renderGlyph(ctx, topX - 5, topY - 3, 40, 'v1b', true);
-        Glyph.renderGlyph(ctx, topX - 5, botY + 3, 40, 'v10', true);
+        Glyph.renderGlyph(ctx, topX - 5, topY, 40, 'bracketTop');
+        Glyph.renderGlyph(ctx, topX - 5, botY, 40, 'bracketBottom');
         topX -= (this.width + 2);
         break;
       case StaveConnector.type.BOLD_DOUBLE_LEFT:
-        drawBoldDoubleLine(ctx, this.type, topX + this.x_shift, topY, botY);
+        drawBoldDoubleLine(ctx, this.type, topX + this.x_shift, topY, botY - this.thickness);
         break;
       case StaveConnector.type.BOLD_DOUBLE_RIGHT:
-        drawBoldDoubleLine(ctx, this.type, topX, topY, botY);
+        drawBoldDoubleLine(ctx, this.type, topX, topY, botY - this.thickness);
         break;
       case StaveConnector.type.THIN_DOUBLE:
         width = 1;
+        attachment_height -= this.thickness;
         break;
       case StaveConnector.type.NONE:
         break;

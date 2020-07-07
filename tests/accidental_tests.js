@@ -91,8 +91,8 @@ Vex.Flow.Test.Accidental = (function() {
     },
 
     cautionary: function(options) {
-      var vf = VF.Test.makeFactory(options, 700, 240);
-      var stave = vf.Stave({ x: 10, y: 10, width: 550 });
+      var vf = VF.Test.makeFactory(options, 800, 240);
+      var stave = vf.Stave({ x: 0, y: 10, width: 780 });
       var score = vf.EasyScore();
 
       var accids = Object
@@ -337,11 +337,13 @@ Vex.Flow.Test.Accidental = (function() {
           .addAccidental(4, newAccid('++').setAsCautionary())
           .addAccidental(5, newAccid('d').setAsCautionary()),
 
-        vf.StaveNote({ keys: ['f/4', 'g/4', 'a/4', 'b/4'], duration: '16' })
+        vf.StaveNote({ keys: ['f/4', 'g/4', 'a/4', 'b/4', 'd/5', 'g/5'], duration: '16' })
           .addAccidental(0, newAccid('++-'))
           .addAccidental(1, newAccid('+-'))
           .addAccidental(2, newAccid('bs'))
-          .addAccidental(3, newAccid('bss')),
+          .addAccidental(3, newAccid('bss'))
+          .addAccidental(4, newAccid('afhf'))
+          .addAccidental(5, newAccid('ashs')),
       ];
 
       VF.Formatter.SimpleFormat(notes, 0, { paddingBetween: 35 });

@@ -1,7 +1,14 @@
-# VexFlow 2
+# VexFlow 3
 
 A JavaScript library for rendering music notation.
 Copyright (c) 2010 Mohit Muthanna Cheppudira
+
+## Sponsor this Project
+
+If you use VexFlow in your app, startup, institution, and find it useful, please consider sponsoring its
+development here: https://github.com/sponsors/0xfe.
+
+## Need Help? Ask on the [Vexflow Google Group](https://groups.google.com/forum/?fromgroups#!forum/vexflow).
 
 ## What is VexFlow?
 
@@ -25,43 +32,19 @@ The releases are served via [unpkg.com](http://unpkg.com).
 * Debug version: https://unpkg.com/vexflow/releases/vexflow-debug.js
 * Minified version: https://unpkg.com/vexflow/releases/vexflow-min.js
 
-### Your First Stave
-
-The example code below renders a VexFlow stave using SVG. See running example in this [jsfiddle](https://jsfiddle.net/gs4v6k6d/2/).
-
-```javascript
-VF = Vex.Flow;
-
-// Create an SVG renderer and attach it to the DIV element named "boo".
-var div = document.getElementById("boo")
-var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-
-// Configure the rendering context.
-renderer.resize(500, 500);
-var context = renderer.getContext();
-context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-
-// Create a stave of width 400 at position 10, 40 on the canvas.
-var stave = new VF.Stave(10, 40, 400);
-
-// Add a clef and time signature.
-stave.addClef("treble").addTimeSignature("4/4");
-
-// Connect it to the rendering context and draw!
-stave.setContext(context).draw();
-```
-
 ### Using EasyScore
 
-The EasyScore API is a quick way to create simple music notation in VexFlow. See running example in [this jsfiddle](https://jsfiddle.net/3d0nbL0n/128/).
+The EasyScore API is a quick way to create simple music notation in VexFlow. See running example in [this jsfiddle](https://jsfiddle.net/2pbh9xq0/).
 
 ```javascript
-var vf = new Vex.Flow.Factory({
+import Vex from 'vexflow';
+
+const vf = new Vex.Flow.Factory({
   renderer: {elementId: 'boo', width: 500, height: 200}
 });
 
-var score = vf.EasyScore();
-var system = vf.System();
+const score = vf.EasyScore();
+const system = vf.System();
 
 system.addStave({
   voices: [
@@ -75,11 +58,41 @@ vf.draw();
 
 Learn more about EasyScore at: [Using EasyScore](https://github.com/0xfe/vexflow/wiki/Using-EasyScore).
 
+### Using the Native API
+
+The example code below renders a VexFlow stave using SVG. See running example in this [jsfiddle](https://jsfiddle.net/j6dpazx2/).
+
+```javascript
+import Vex from 'vexflow';
+
+const VF = Vex.Flow;
+
+// Create an SVG renderer and attach it to the DIV element named "vf".
+const div = document.getElementById("vf")
+const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+// Configure the rendering context.
+renderer.resize(500, 500);
+const context = renderer.getContext();
+context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
+
+// Create a stave of width 400 at position 10, 40 on the canvas.
+const stave = new VF.Stave(10, 40, 400);
+
+// Add a clef and time signature.
+stave.addClef("treble").addTimeSignature("4/4");
+
+// Connect it to the rendering context and draw!
+stave.setContext(context).draw();
+```
+
 ## Resources
 
 To learn and contribute, check out the [VexFlow Wiki](https://github.com/0xfe/vexflow/wiki).
 
-To build VexFlow from scratch, read the [Build Instructions](https://github.com/0xfe/vexflow/wiki/Build-Instructions).
+To build VexFlow from scratch, read the [Build Instructions](https://github.com/0xfe/vexflow/wiki/Build-And-Release-Instructions).
+
+Sponsor Vexflow: https://github.com/sponsors/0xfe
 
 ## MIT License
 
@@ -107,5 +120,4 @@ THE SOFTWARE.
 ## Links
 
 * [VexFlow Home](http://vexflow.com)
-* [My VexFlow](http://my.vexflow.com)
-* [Me](http://0xfe.muthanna.com)
+* [Me](http://muthanna.com)

@@ -65,7 +65,7 @@ export class StaveTempo extends StaveModifier {
         x += ctx.measureText('(').width;
       }
 
-      const code = Flow.durationToGlyph(duration);
+      const code = Flow.getGlyphProps(duration);
 
       x += 3 * scale;
       Glyph.renderGlyph(ctx, x, y, options.glyph_font_scale, code.code_head);
@@ -83,7 +83,8 @@ export class StaveTempo extends StaveModifier {
         ctx.fillRect(x - scale, y_top, scale, stem_height);
 
         if (code.flag) {
-          Glyph.renderGlyph(ctx, x, y_top, options.glyph_font_scale, code.code_flag_upstem);
+          Glyph.renderGlyph(ctx, x, y_top, options.glyph_font_scale,
+            code.code_flag_upstem, { category: 'flag.staveTempo' });
 
           if (!dots) x += 6 * scale;
         }

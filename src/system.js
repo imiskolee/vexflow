@@ -9,13 +9,6 @@ import { Factory } from './factory';
 import { Formatter } from './formatter';
 import { Note } from './note';
 
-function setDefaults(params, defaults) {
-  const default_options = defaults.options;
-  params = Object.assign(defaults, params);
-  params.options = Object.assign(default_options, params.options);
-  return params;
-}
-
 export class System extends Element {
   constructor(params = {}) {
     super();
@@ -25,17 +18,23 @@ export class System extends Element {
   }
 
   setOptions(options = {}) {
-    this.options = setDefaults(options, {
+    this.options = {
       x: 10,
       y: 10,
       width: 500,
       connector: null,
       spaceBetweenStaves: 12, // stave spaces
       factory: null,
+      noJustification: false,
       debugFormatter: false,
       formatIterations: 0,   // number of formatter tuning steps
-      options: {},
-    });
+      noPadding: false,
+      ...options,
+      details: {
+        alpha: 0.5,          // formatter tuner learning/shifting rate
+        ...options.details,
+      },
+    };
 
     this.factory = this.options.factory || new Factory({ renderer: { el: null } });
   }
@@ -56,22 +55,25 @@ export class System extends Element {
   }
 
   addStave(params) {
-    params = setDefaults(params, {
+    params = {
       stave: null,
       voices: [],
       spaceAbove: 0, // stave spaces
       spaceBelow: 0, // stave spaces
       debugNoteMetrics: false,
-      options: {},
-    });
+      ...params,
+      options: {
+        left_bar: false,
+        ...params.options,
+      },
+    };
 
     if (!params.stave) {
-      const options = { left_bar: false };
       params.stave = this.factory.Stave({
         x: this.options.x,
         y: this.options.y,
         width: this.options.width,
-        options,
+        options: params.options,
       });
     }
 
@@ -88,7 +90,7 @@ export class System extends Element {
   }
 
   format() {
-    const formatter = new Formatter();
+    const formatter = new Formatter({ ...this.options.details });
     this.formatter = formatter;
 
     let y = this.options.y;
@@ -114,11 +116,14 @@ export class System extends Element {
 
     // Update the start position of all staves.
     this.parts.forEach(part => part.stave.setNoteStartX(startX));
-    const justifyWidth = this.options.width - (startX - this.options.x) - Note.STAVEPADDING;
-    formatter.format(allVoices, justifyWidth);
+    const justifyWidth = this.options.noPadding ?
+      this.options.width - this.options.x :
+      this.options.width - (startX - this.options.x) - this.musicFont.lookupMetric('stave.padding');
+
+    formatter.format(allVoices, this.options.noJustification ? 0 : justifyWidth);
 
     for (let i = 0; i < this.options.formatIterations; i++) {
-      formatter.tune();
+      formatter.tune({ alpha: this.options.details.alpha });
     }
 
     this.startX = startX;
