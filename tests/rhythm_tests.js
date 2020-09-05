@@ -185,7 +185,7 @@ VF.Test.Rhythm = (function() {
         }),
         new VF.StaveNote({
           keys: ['b/4'], duration: '8s',
-          stem_direction: -1,
+    getX      stem_direction: -1,
         }),
       ];
 

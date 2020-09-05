@@ -77,6 +77,7 @@ import { GlyphNote } from './glyphnote';
 import { RepeatNote } from './repeatnote';
 
 import { Font, Fonts, DefaultFontStack } from './smufl';
+import {NumberedNote} from "./numbered_note";
 
 Vex.Flow = Flow;
 Vex.Flow.Element = Element;
@@ -128,6 +129,7 @@ Vex.Flow.StaveHairpin = StaveHairpin;
 Vex.Flow.BoundingBox = BoundingBox;
 Vex.Flow.Stroke = Stroke;
 Vex.Flow.TextNote = TextNote;
+Vex.Flow.NumberedNote = NumberedNote;
 Vex.Flow.Curve = Curve;
 Vex.Flow.TextDynamics = TextDynamics;
 Vex.Flow.StaveLine = StaveLine;

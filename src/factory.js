@@ -48,6 +48,7 @@ import { BarNote } from './barnote';
 import { TabNote } from './tabnote';
 import { TabStave } from './tabstave';
 import { TextNote } from './textnote';
+import {NumberedNote} from "./numbered_note";
 
 // To enable logging for this class. Set `Vex.Flow.Factory.DEBUG` to `true`.
 function L(...args) { if (Factory.DEBUG) Vex.L('Vex.Flow.Factory', args); }
@@ -199,6 +200,15 @@ export class Factory {
     if (this.stave) textNote.setStave(this.stave);
     textNote.setContext(this.context);
     this.renderQ.push(textNote);
+    return textNote;
+  }
+
+  NumberedNote(textNoteStruct) {
+    const textNote = new NumberedNote(textNoteStruct);
+    if (this.stave) textNote.setStave(this.stave);
+    textNote.setContext(this.context);
+    this.renderQ.push(textNote);
+
     return textNote;
   }
 
