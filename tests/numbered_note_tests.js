@@ -8,9 +8,16 @@ VF.Test.NumberedNote = (function() {
     },
     formatNumberedNotes: function(options) {
       var vf = VF.Test.makeFactory(options, 600, 230);
-      var stave = vf.Stave({ y: 40 });
-      var score = vf.EasyScore();
-      var voice = score.voice([
+      var stave = vf.Stave({ y: 40,
+       options : {
+          num_lines : 3,
+         glyph_spacing_px : 16,
+         draw_line : false,
+       }
+      });
+      stave.setContext(vf.getContext());
+      stave.draw();
+      var notes = [
         vf.NumberedNote({ keys: ['C/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['E/3'], duration: '8' }),
@@ -19,8 +26,16 @@ VF.Test.NumberedNote = (function() {
         vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
         vf.NumberedNote({ keys: ['E/4'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
-      ]);
-      voice.setContext(vf.getContext()).setStave(stave).draw();
+      ];
+      for (let i = 0; i < notes.length; i++) {
+        var note = notes[i];
+        new VF.TickContext()
+          .addTickable(note)
+          .preFormat()
+          .setX(i * 25);
+
+        note.setContext(vf.getContext()).draw();
+      }
       vf.draw();
       ok(true);
     }

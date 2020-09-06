@@ -92,7 +92,7 @@ module.exports = (grunt) => {
     watch: {
       tests: {
         files: ['tests/*', 'src/*'],
-        tasks: ['concat:tests'],
+        tasks: ['webpack:buildDev', 'concat:tests'],
         options: {
           interrupt: true,
         },

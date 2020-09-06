@@ -39,6 +39,7 @@ export class Stave extends Element {
       vertical_bar_width: 10,       // Width around vertical bar end-marker
       glyph_spacing_px: 10,
       num_lines: 5,
+      draw_line : true,
       fill_style: '#999999',
       left_bar: true,               // draw vertical bar on left
       right_bar: true,               // draw vertical bar on right
@@ -561,18 +562,20 @@ export class Stave extends Element {
     const x = this.x;
     let y;
 
-    // Render lines
-    for (let line = 0; line < num_lines; line++) {
-      y = this.getYForLine(line);
+    if (this.options.draw_line) {
+      // Render lines
+      for (let line = 0; line < num_lines; line++) {
+        y = this.getYForLine(line);
 
-      this.applyStyle();
-      if (this.options.line_config[line].visible) {
-        this.context.beginPath();
-        this.context.moveTo(x, y);
-        this.context.lineTo(x + width, y);
-        this.context.stroke();
+        this.applyStyle();
+        if (this.options.line_config[line].visible) {
+          this.context.beginPath();
+          this.context.moveTo(x, y);
+          this.context.lineTo(x + width, y);
+          this.context.stroke();
+        }
+        this.restoreStyle();
       }
-      this.restoreStyle();
     }
 
     // Draw the modifiers (bar lines, coda, segno, repeat brackets, etc.)
