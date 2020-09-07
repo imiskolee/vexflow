@@ -239,6 +239,7 @@ export class Note extends Tickable {
   getStave() { return this.stave; }
   setStave(stave) {
     this.stave = stave;
+    console.log(this.stave,this.stave.getYForLine(0))
     this.setYs([stave.getYForLine(0)]); // Update Y values if the stave is changed.
     this.context = this.stave.context;
     return this;

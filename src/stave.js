@@ -246,9 +246,7 @@ export class Stave extends Element {
     const options = this.options;
     const spacing = options.spacing_between_lines_px;
     const headroom = options.space_above_staff_ln;
-
     const y = this.y + (line * spacing) + (headroom * spacing);
-
     return y;
   }
 

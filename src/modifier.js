@@ -133,7 +133,6 @@ export class Modifier extends Element {
     const metrics = tickContext.getMetrics();
     const subNoteXOffset = tickContext.getX() - metrics.modLeftPx - metrics.modRightPx
       + this.getSpacingFromNextModifier();
-
     subNotes.forEach((subNote) => {
       const subTickContext = subNote.getTickContext();
       subNote.setStave(note.stave);

@@ -11,22 +11,27 @@ VF.Test.NumberedNote = (function() {
       var stave = vf.Stave({ y: 40,
        options : {
           num_lines : 3,
+         space_above_staff_ln:0,
+         space_below_staff_ln:0,
          glyph_spacing_px : 16,
          draw_line : false,
        }
       });
+
       stave.setContext(vf.getContext());
       stave.draw();
       var notes = [
         vf.NumberedNote({ keys: ['C/3'], duration: '8' }),
-        vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
+       /* vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['E/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['C/4'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
         vf.NumberedNote({ keys: ['E/4'], duration: '8' }),
-        vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
+        vf.NumberedNote({ keys: ['D/4'], duration: '8' }), */
       ];
+
+      notes[0].addAccidental(0,new VF.Accidental('#'));
       for (let i = 0; i < notes.length; i++) {
         var note = notes[i];
         new VF.TickContext()

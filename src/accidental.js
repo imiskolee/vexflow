@@ -512,7 +512,7 @@ export class Accidental extends Modifier {
     }
 
     // Figure out the start `x` and `y` coordinates for note and index.
-    const start = note.getModifierStartXY(position, index);
+    let start = note.getModifierStartXY(position, index);
     let accX = start.x + x_shift;
     const accY = start.y + y_shift;
     L('Rendering: ', type, accX, accY);

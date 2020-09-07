@@ -1,8 +1,9 @@
 import {Note} from './note';
 import {Vex} from "./vex";
 import {Glyph} from "./glyph";
+import {StaveNote} from "./stavenote";
 
-export class NumberedNote extends Note {
+export class NumberedNote extends StaveNote {
   /*
 {
   "duration" : "n",
@@ -51,6 +52,8 @@ export class NumberedNote extends Note {
 
   }
 
+
+
   draw() {
     var key = this.keys[0]
     this.checkContext()
@@ -60,9 +63,10 @@ export class NumberedNote extends Note {
     this.setRendered();
     const ctx = this.context;
     let x = this.getAbsoluteX() + (this.tickContext.getMetrics().glyphPx / 2);
-    const width = this.getWidth();
     let y;
-    y = this.stave.getYForLine(1) + this.stave.options.glyph_spacing_px / 2
+    y = this.stave.getYForLine(1) + this.stave.options.glyph_spacing_px / 2;
+    this.x = x;
+    this.y = y;
     let top = this.stave.getYForLine(1) - this.stave.options.glyph_spacing_px / 2
     let topSpace = 4
     var splitted = key.split("/")
@@ -87,12 +91,7 @@ export class NumberedNote extends Note {
       ctx.openGroup("numbernote-head")
       ctx.save()
       for (let i = 0; i < this.topDots; i++) {
-        ctx.openGroup("numbernote-head-dot")
-        ctx.beginPath()
-        ctx.arc(x +(this.stave.options.glyph_spacing_px / 3),startTop,2,0,2*Math.PI)
-        ctx.closePath()
-        ctx.fill()
-        ctx.closeGroup()
+        this.drawDOt(ctx,x +(this.stave.options.glyph_spacing_px / 3),startTop,2)
         startTop -= 6
       }
       ctx.closeGroup()
@@ -102,17 +101,49 @@ export class NumberedNote extends Note {
     ctx.closeGroup()
     if (this.bottomDots > 0) {
       ctx.openGroup("numbernote-bottom")
+      var startBottom = y + 2
       for (let i = 0; i < this.bottomDots; i++) {
-        ctx.openGroup("numbernote-bottom-dot")
-        ctx.fillText(".",x,y)
-        y += 4
-        ctx.closeGroup()
+        this.drawDOt(ctx,startBottom +(this.stave.options.glyph_spacing_px / 3),y,2)
+        startBottom += 6
       }
       ctx.closeGroup()
+    }
+
+    console.log(this.modifiers,this)
+    ctx.setFont("Arial",12,"normal")
+    for(var i=0;i<this.modifiers.length; i++) {
+      var modifier = this.modifiers[i];
+      modifier.render_options.font_scale = fontSize * 1.5
+      modifier.reset()
+      modifier.setContext(this.context);
+      modifier.drawWithStyle();
     }
     ctx.closeGroup()
     this.restoreStyle(ctx);
   }
+
+  drawNote() {
+
+  }
+
+  getModifierStartXY(position,index) {
+    console.log(this.context)
+    return {
+      x:this.x,
+      y : this.y - 12
+    }
+  }
+
+  drawDOt(ctx,x,y,width) {
+    ctx.openGroup("numbernote-dot")
+    ctx.beginPath()
+    ctx.arc(x,y,width,0,2*Math.PI)
+    ctx.closePath()
+    ctx.fill()
+    ctx.closeGroup()
+  }
+
+
 
   getWidth() {
     return 40
