@@ -32,6 +32,7 @@ VF.Test.NumberedNote = (function() {
       ];
 
       notes[0].addAccidental(0,new VF.Accidental('#'));
+      notes[0].addDot(0);
       for (let i = 0; i < notes.length; i++) {
         var note = notes[i];
         new VF.TickContext()

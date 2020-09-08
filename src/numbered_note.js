@@ -3,6 +3,8 @@ import {Vex} from "./vex";
 import {Glyph} from "./glyph";
 import {StaveNote} from "./stavenote";
 import {Flow} from "./tables";
+import {Accidental} from "./accidental";
+import {Dot} from "./dot";
 
 export class NumberedNote extends StaveNote {
   /*
@@ -52,6 +54,9 @@ export class NumberedNote extends StaveNote {
     this.text = "C/4";
     this.keys = options.keys || [];
     this.fontSize = 20;
+    this.glyph = {
+      dot_shiftY : 0
+    }
   }
 
   setKeySignature(key) {
@@ -62,6 +67,7 @@ export class NumberedNote extends StaveNote {
     this.checkContext();
     if (this.preFormatted) return;
     this.setPreFormatted(true);
+    this.setWidth(this.getWidth())
   }
 
   draw() {
@@ -121,10 +127,20 @@ export class NumberedNote extends StaveNote {
     ctx.setFont("Arial", 12, "normal")
     for (var i = 0; i < this.modifiers.length; i++) {
       var modifier = this.modifiers[i];
-      modifier.render_options.font_scale = fontSize * 1.5
       modifier.reset()
       modifier.setContext(this.context);
-      modifier.drawWithStyle();
+      switch(modifier.getAttribute("type")) {
+        case 'Dot':
+            modifier.y_shift = 8
+            modifier.x_shift = 10
+            modifier.drawWithStyle()
+            break
+        case 'Accidental':
+          modifier.render_options.font_scale = fontSize * 1.5
+          modifier.drawWithStyle();
+          break
+      }
+
     }
     ctx.openGroup('numbered_note_lines')
     this.drawDurationLine(ctx)
@@ -174,7 +190,8 @@ export class NumberedNote extends StaveNote {
   }
 
   getWidth() {
-    return 40
+    //basic font size + left modifiers width + right modifier width + spacing
+    return 20 + 10 + this.getModifierWidth()
   }
 }
 
