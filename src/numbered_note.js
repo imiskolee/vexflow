@@ -126,8 +126,10 @@ export class NumberedNote extends StaveNote {
       modifier.setContext(this.context);
       modifier.drawWithStyle();
     }
-
+    ctx.openGroup('numbered_note_lines')
     this.drawDurationLine(ctx)
+    ctx.closeGroup()
+
     ctx.closeGroup()
     this.restoreStyle(ctx);
   }
@@ -150,7 +152,6 @@ export class NumberedNote extends StaveNote {
 
   drawDurationLine(ctx) {
     const duration = Flow.sanitizeDuration(this.duration)
-    console.log(duration)
     var lines = NumberedNote.numberedDurationLine[duration.toString()]
 
     if(lines > 0) {
