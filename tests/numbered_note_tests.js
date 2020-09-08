@@ -22,13 +22,13 @@ VF.Test.NumberedNote = (function() {
       stave.draw();
       var notes = [
         vf.NumberedNote({ keys: ['C/3'], duration: '8' }),
-       /* vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
-        vf.NumberedNote({ keys: ['E/3'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/3'], duration: '8' }),
-        vf.NumberedNote({ keys: ['C/4'], duration: '8' }),
-        vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
-        vf.NumberedNote({ keys: ['E/4'], duration: '8' }),
-        vf.NumberedNote({ keys: ['D/4'], duration: '8' }), */
+        vf.NumberedNote({ keys: ['E/3'], duration: '16' }),
+        vf.NumberedNote({ keys: ['D/3'], duration: '16' }),
+        vf.NumberedNote({ keys: ['C/4'], duration: '32' }),
+        vf.NumberedNote({ keys: ['D/4'], duration: '32' }),
+        vf.NumberedNote({ keys: ['E/4'], duration: '64' }),
+        vf.NumberedNote({ keys: ['D/4'], duration: '64' }),
       ];
 
       notes[0].addAccidental(0,new VF.Accidental('#'));
