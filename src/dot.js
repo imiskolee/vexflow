@@ -141,6 +141,10 @@ export class Dot extends Modifier {
     if (this.note.getCategory() === 'tabnotes') {
       start.y = this.note.getStemExtents().baseY;
     }
+    if(this.note.getCategory() === "numberednotes") {
+      start.y = this.note.y - 2
+      start.x += this.note.x - 6
+    }
 
     const x = (start.x + this.x_shift) + this.width - this.radius;
     const y = start.y + this.y_shift + (this.dot_shiftY * lineSpace);

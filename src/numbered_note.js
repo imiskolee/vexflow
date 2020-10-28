@@ -7,6 +7,10 @@ import {Accidental} from "./accidental";
 import {Dot} from "./dot";
 
 export class NumberedNote extends StaveNote {
+  static get CATEGORY() {
+    return "numberednotes"
+  }
+  getCategory() { return NumberedNote.CATEGORY; }
   /*
 {
   "duration" : "n",
@@ -101,7 +105,7 @@ export class NumberedNote extends StaveNote {
     var fontSize = this.stave.options.glyph_spacing_px
     ctx.save()
     ctx.setFont("Arial", fontSize, "normal")
-    ctx.openGroup("numberednote")
+    ctx.openGroup("numberednote",this.attrs.id)
     if (this.topDots > 0) {
       var startTop = top - topSpace;
       ctx.openGroup("numbernote-head")
@@ -129,22 +133,22 @@ export class NumberedNote extends StaveNote {
       var modifier = this.modifiers[i];
       modifier.reset()
       modifier.setContext(this.context);
+
       switch(modifier.getAttribute("type")) {
         case 'Dot':
-            modifier.y_shift = 8
-            modifier.x_shift = 10
             modifier.drawWithStyle()
             break
         case 'Accidental':
           modifier.render_options.font_scale = fontSize * 1.5
+          modifier.reset()
           modifier.drawWithStyle();
           break
       }
 
     }
-    ctx.openGroup('numbered_note_lines')
+
     this.drawDurationLine(ctx)
-    ctx.closeGroup()
+
 
     ctx.closeGroup()
     this.restoreStyle(ctx);
@@ -165,8 +169,18 @@ export class NumberedNote extends StaveNote {
     ctx.fill()
     ctx.closeGroup()
   }
-
-  drawDurationLine(ctx) {
+  removeDurationLines() {
+    var id = 'vf-'+this.attrs.id + '-lines'
+    var ele =  document.getElementById(id);
+    if(ele) {
+      ele.remove()
+    }
+  }
+  drawDurationLine(ctx,opts) {
+    var id = this.attrs.id + '-lines'
+    ctx.openGroup('numbered_note_lines',id)
+    var startX,startY;
+    //todo 分离left modifier 与 right modifier
     const duration = Flow.sanitizeDuration(this.duration)
     var lines = NumberedNote.numberedDurationLine[duration.toString()]
 
@@ -175,14 +189,25 @@ export class NumberedNote extends StaveNote {
        //todo 这里和字体有很大的关系
        var basic = this.stave.options.glyph_spacing_px * 0.8
         var w =  basic + this.getModifierWidth()  + spacing;
-        var startX = this.x - this.getModifierWidth() - spacing / 2
-        var startY = this.y + 2;
-        for(var i = 0;i < lines;i++) {
-          console.log(i)
-          ctx.rect(startX,startY,w,0.5)
-          startY += 3
+       if(opts && opts.width) {
+          w = opts.width
+       }
+       if(!opts || 'undefined' === typeof opts.startX) {
+          startX = this.x - this.getModifierWidth() - spacing / 2
+       }else{
+         startX = opts.startX
+       }
+      if(!opts || 'undefined' === typeof opts.startY) {
+         startY = this.y + 2;
+      }else{
+          startY = opts.startY
+      }
+      for(var i = 0;i < lines;i++) {
+        ctx.rect(startX,startY,w,0.5)
+        startY += 3
         }
     }
+    ctx.closeGroup()
   }
 
   getModifierWidth() {

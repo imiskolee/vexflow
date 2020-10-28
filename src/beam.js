@@ -354,7 +354,7 @@ export class Beam extends Element {
     const beams = [];
     beamedNoteGroups.forEach(group => {
       const beam = new Beam(group);
-
+      beam.is_numbered_note = config.is_numbered_note;
       if (config.show_stemlets) {
         beam.render_options.show_stemlets = true;
       }
@@ -869,6 +869,10 @@ export class Beam extends Element {
   draw() {
     this.checkContext();
     this.setRendered();
+    if(this.is_numbered_note) {
+      this.drawNumberedNote();
+      return;
+    }
     if (this.unbeamable) return;
 
     if (!this.postFormatted) {
@@ -879,5 +883,27 @@ export class Beam extends Element {
     this.applyStyle();
     this.drawBeamLines();
     this.restoreStyle();
+  }
+
+  drawNumberedNote() {
+    this.checkContext();
+    this.setRendered();
+    if (this.unbeamable) return;
+    if (!this.postFormatted) {
+      //this.postFormat();
+    }
+    console.log(this.notes)
+    var idx = 0;
+    this.notes.forEach((note)=>{
+      idx++;
+      if(idx < this.notes.length) {
+        note.removeDurationLines()
+        this.notes[idx-1].drawDurationLine(this.notes[idx-1].getContext(),{
+          width : this.notes[idx].x - this.notes[idx-1].x
+        })
+        console.log(this.notes[idx].x - this.notes[idx-1].x)
+      }
+
+    })
   }
 }
