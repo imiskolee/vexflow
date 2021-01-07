@@ -138,22 +138,37 @@ export class Curve extends Element {
     }
 
     if (first_note) {
-      first_x = first_note.getTieRightX();
-      stem_direction = first_note.getStemDirection();
-      first_y = first_note.getStemExtents()[metric];
+      if(first_note.getCategory() == 'numberednotes') {
+        first_x = first_note.x + first_note.getModifierWidth();
+        first_y = first_note.y - 20;
+        stem_direction = Vex.Flow.Stem.UP
+
+      }else{
+        first_x = first_note.getTieRightX();
+        stem_direction = first_note.getStemDirection();
+        first_y = first_note.getStemExtents()[metric];
+      }
+
     } else {
       first_x = last_note.getStave().getTieStartX();
       first_y = last_note.getStemExtents()[metric];
     }
-
     if (last_note) {
-      last_x = last_note.getTieLeftX();
-      stem_direction = last_note.getStemDirection();
-      last_y = last_note.getStemExtents()[end_metric];
+      if(last_note.getCategory() == 'numberednotes') {
+        last_x = last_note.x + last_note.getModifierWidth() + 10;
+        last_y = last_note.y - 20;
+        stem_direction = Vex.Flow.Stem.UP
+      }else{
+        last_x = last_note.getTieLeftX();
+        stem_direction = last_note.getStemDirection();
+        last_y = last_note.getStemExtents()[end_metric];
+      }
+
     } else {
       last_x = first_note.getStave().getTieEndX();
       last_y = first_note.getStemExtents()[end_metric];
     }
+
 
     this.renderCurve({
       first_x,

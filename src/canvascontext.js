@@ -127,6 +127,10 @@ export class CanvasContext {
   rect(x, y, width, height) {
     return this.vexFlowCanvasContext.rect(x, y, width, height);
   }
+  circle(x, y, size) {
+    //todo
+    return this.vexFlowCanvasContext.rect(x, y, 0,0);
+  }
 
   fillRect(x, y, width, height) {
     return this.vexFlowCanvasContext.fillRect(x, y, width, height);

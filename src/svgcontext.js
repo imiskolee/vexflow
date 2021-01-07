@@ -397,7 +397,22 @@ export class SVGContext {
     this.rect(x, y, width, height, this.background_attributes);
     return this;
   }
-
+  circle(x,y,size) {
+    var attributes = {
+      fill: 'black',
+      'stroke-width': this.lineWidth,
+      stroke: 'black',
+    };
+    const rectangle = this.create('circle');
+    Vex.Merge(attributes, {
+      cx : x,
+      cy : y,
+      r : size
+    });
+    this.applyAttributes(rectangle, attributes);
+    this.add(rectangle);
+    return this;
+  }
   // ## Paths:
 
   beginPath() {
