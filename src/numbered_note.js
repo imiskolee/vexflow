@@ -99,7 +99,10 @@ export class NumberedNote extends StaveNote {
     } else if (h > 0) {
       td = t
     }
-    this.number = NumberedNote.numberedNotationMapping[splitted[0].toUpperCase()]
+    let k = splitted[0].toUpperCase();
+    k = k.replaceAll("#","");
+    k = k.replaceAll("b","");
+    this.number = NumberedNote.numberedNotationMapping[k];
     this.topDots = td;
     this.bottomDots = bd;
     var fontSize = this.stave.options.glyph_spacing_px
