@@ -91,7 +91,7 @@ export class NumberedNote extends StaveNote {
     let topSpace = 4
     var splitted = key.split("/")
     var h = parseInt(splitted[1]);
-    var t = h - 3;
+    var t = h - 4;
     var bd = 0;
     var td = 0;
     if (t < 0) {
@@ -121,7 +121,7 @@ export class NumberedNote extends StaveNote {
     ctx.closeGroup()
     if (this.bottomDots > 0) {
       ctx.openGroup("numbernote-bottom")
-      var startBottom = y + 2
+      var startBottom = y + 4
       for (let i = 0; i < this.bottomDots; i++) {
         this.drawDOt(ctx, startBottom + (this.stave.options.glyph_spacing_px / 3), y, 2)
         startBottom += 6
