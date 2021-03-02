@@ -40,6 +40,18 @@ export class NumberedNote extends StaveNote {
     }
   }
 
+  static get dotWidth() {
+    return 2;
+  }
+  static get bottomSpace() {
+    return 4;
+  }
+   get noteHeight() {
+     var fontSize =this.stave.options.glyph_spacing_px;
+    // fontSize = fontSize - fontSize / this.keys.length;
+     return fontSize
+  }
+
   static get numberedDurationLine() {
     return {
       '8': 1,
@@ -67,15 +79,40 @@ export class NumberedNote extends StaveNote {
     this.keySignature = key;
   }
 
+
   preFormat() {
     this.checkContext();
     if (this.preFormatted) return;
-    this.setPreFormatted(true);
+    if (this.modifierContext) this.modifierContext.preFormat();
+
     this.setWidth(this.getWidth())
+    this.setPreFormatted(true);
   }
 
+  tone_to_numbered_key(key) {
+    var splitted = key.split("/")
+    var k = splitted[0]
+    k = k.replaceAll("#","");
+    k = k.replaceAll("b","");
+    var h = parseInt(splitted[1]);
+    var t = h - 4;
+    var bd = 0;
+    var td = 0;
+    if (t < 0) {
+      bd = Math.abs(t)
+    } else if (h > 0) {
+      td = t
+    }
+    return {
+      key: NumberedNote.numberedNotationMapping[k.toUpperCase()],
+      td : td,
+      bd: bd,
+    }
+  }
+
+
+
   draw() {
-    var key = this.keys[0]
     this.checkContext()
     if (!this.stave) {
       throw new Vex.RERR('NoStave', "Can't draw without a stave.");
@@ -89,49 +126,54 @@ export class NumberedNote extends StaveNote {
     this.y = y;
     let top = this.stave.getYForLine(1) - this.stave.options.glyph_spacing_px / 2
     let topSpace = 4
-    var splitted = key.split("/")
-    var h = parseInt(splitted[1]);
-    var t = h - 4;
-    var bd = 0;
-    var td = 0;
-    if (t < 0) {
-      bd = Math.abs(t)
-    } else if (h > 0) {
-      td = t
+
+    const fontSize = this.noteHeight
+
+    const duration = Flow.sanitizeDuration(this.duration)
+    var lines = NumberedNote.numberedDurationLine[duration.toString()]
+    if(!lines) {
+      lines = 0;
     }
-    let k = splitted[0].toUpperCase();
-    k = k.replaceAll("#","");
-    k = k.replaceAll("b","");
-    this.number = NumberedNote.numberedNotationMapping[k];
-    this.topDots = td;
-    this.bottomDots = bd;
-    var fontSize = this.stave.options.glyph_spacing_px
-    ctx.save()
-    ctx.setFont("Arial", fontSize, "normal")
-    ctx.openGroup("numberednote",this.attrs.id)
-    if (this.topDots > 0) {
-      var startTop = top - topSpace;
-      ctx.openGroup("numbernote-head")
+
+    for(var i=0;i<this.keys.length;i++) {
+      //this.y = y;
+      var _h = fontSize;
+      let k = this.keys[i].toUpperCase();
+      var meta = this.tone_to_numbered_key(k);
       ctx.save()
-      for (let i = 0; i < this.topDots; i++) {
-        this.drawDOt(ctx, x + (this.stave.options.glyph_spacing_px / 3), startTop, 2)
-        startTop -= 6
+      ctx.setFont("Arial", fontSize, "normal")
+
+      ctx.openGroup("numberednote",this.attrs.id)
+      if (meta.td > 0) {
+        _h += topSpace;
+        var startTop = top - topSpace;
+        ctx.openGroup("numbernote-head")
+        ctx.save()
+        for (let i = 0; i < meta.td; i++) {
+          this.drawDOt(ctx, x + (this.stave.options.glyph_spacing_px / 3), startTop, NumberedNote.dotWidth)
+          startTop -= 6
+          _h += 6;
+        }
+        ctx.closeGroup()
       }
+      ctx.openGroup("numbernote-note")
+      ctx.fillText(meta.key, x, y)
       ctx.closeGroup()
-    }
-    ctx.openGroup("numbernote-note")
-    ctx.fillText(this.number, x, y)
-    ctx.closeGroup()
-    if (this.bottomDots > 0) {
-      ctx.openGroup("numbernote-bottom")
-      var startBottom = y + 4
-      for (let i = 0; i < this.bottomDots; i++) {
-        this.drawDOt(ctx, startBottom + (this.stave.options.glyph_spacing_px / 3), y, 2)
-        startBottom += 6
+      if (meta.bd> 0) {
+        ctx.openGroup("numbernote-bottom")
+        var startBottom = y + (4 * lines)
+        _h += 4 * lines
+        for (let i = 0; i < meta.bd; i++) {
+         this.drawDOt(ctx, x + (this.stave.options.glyph_spacing_px / 3),startBottom, NumberedNote.dotWidth)
+          startBottom += 6
+          _h += 6
+        }
+        ctx.closeGroup()
       }
-      ctx.closeGroup()
+      y -= _h;
     }
-    ctx.setFont("Arial", 12, "normal")
+
+    ctx.setFont("Arial", 12, "normal");
     for (var i = 0; i < this.modifiers.length; i++) {
       var modifier = this.modifiers[i];
       modifier.reset()
@@ -221,5 +263,25 @@ export class NumberedNote extends StaveNote {
     //basic font size + left modifiers width + right modifier width + spacing
     return 20 + 10 + this.getModifierWidth()
   }
+
+  getHeight() {
+    var noteHeight = (this.noteHeight) * this.keys.length ;
+    let metas = [];
+    this.keys.forEach((v)=>{
+      metas.push(this.tone_to_numbered_key(v));
+    })
+    var dots = 0;
+    metas.forEach((meta)=>{
+      dots += meta.td;
+      dots += meta.bd;
+    })
+    noteHeight += (NumberedNote.dotWidth + 6) * dots;
+    return noteHeight
+  }
+
+  getTopY() {
+    return this.y - this.getHeight() + this.stave.options.glyph_spacing_px;
+  }
+
 }
 

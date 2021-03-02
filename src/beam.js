@@ -892,16 +892,14 @@ export class Beam extends Element {
     if (!this.postFormatted) {
       //this.postFormat();
     }
-    console.log(this.notes)
     var idx = 0;
     this.notes.forEach((note)=>{
       idx++;
       if(idx < this.notes.length) {
         note.removeDurationLines()
         this.notes[idx-1].drawDurationLine(this.notes[idx-1].getContext(),{
-          width : this.notes[idx].x - this.notes[idx-1].x
+          width : this.notes[idx].x - this.notes[idx-1].x + this.notes[idx-1].full_width
         })
-        console.log(this.notes[idx].x - this.notes[idx-1].x)
       }
 
     })

@@ -139,8 +139,8 @@ export class Curve extends Element {
 
     if (first_note) {
       if(first_note.getCategory() == 'numberednotes') {
-        first_x = first_note.x + first_note.getModifierWidth();
-        first_y = first_note.y - 20;
+        first_x = first_note.x - first_note.left_width;
+        first_y = first_note.top_y - 10;
         stem_direction = Vex.Flow.Stem.UP
 
       }else{
@@ -155,8 +155,8 @@ export class Curve extends Element {
     }
     if (last_note) {
       if(last_note.getCategory() == 'numberednotes') {
-        last_x = last_note.x + last_note.getModifierWidth() + 10;
-        last_y = last_note.y - 20;
+        last_x = last_note.x + last_note.full_width;
+        last_y = last_note.top_y - 10;
         stem_direction = Vex.Flow.Stem.UP
       }else{
         last_x = last_note.getTieLeftX();

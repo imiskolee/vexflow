@@ -413,11 +413,14 @@ export class Note extends Tickable {
 
     // Position note to left edge of tick context.
     let x = this.tickContext.getX();
+
     if (this.stave) {
+      console.log(x,this.stave.getNoteStartX())
       x += this.stave.getNoteStartX() + this.musicFont.lookupMetric('stave.padding');
     }
 
     if (this.isCenterAligned()) {
+      console.log("center",this.getCenterXShift())
       x += this.getCenterXShift();
     }
 

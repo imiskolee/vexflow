@@ -7,8 +7,8 @@ VF.Test.NumberedNote = (function() {
       runTests('NumberedNote Formatting', NumberedNote.formatNumberedNotes);
     },
     formatNumberedNotes: function(options) {
-      var vf = VF.Test.makeFactory(options, 600, 230);
-      var stave = vf.Stave({ y: 40,
+      var vf = VF.Test.makeFactory(options, 600, 400);
+      var stave = vf.Stave({ y: 200,
        options : {
           num_lines : 3,
          space_above_staff_ln:0,
@@ -17,7 +17,6 @@ VF.Test.NumberedNote = (function() {
          draw_line : false,
        }
       });
-
       stave.setContext(vf.getContext());
       stave.draw();
       var notes = [
@@ -29,9 +28,16 @@ VF.Test.NumberedNote = (function() {
         vf.NumberedNote({ keys: ['D/4'], duration: '16' }),
         vf.NumberedNote({ keys: ['E/4'], duration: '8' }),
         vf.NumberedNote({ keys: ['D/4'], duration: '8' }),
+        vf.NumberedNote({ keys: ['C/3', 'E/3', 'G/3'], duration: '4' }),
+        vf.NumberedNote({ keys: ['C/3', 'E/3', 'G/3'], duration: '8' }),
+        vf.NumberedNote({ keys: ['C/3', 'E/3', 'G/3'], duration: '8' }),
       ];
-      notes[0].addAccidental(0,new VF.Accidental('#'));
-      notes[1].addAccidental(0,new VF.Accidental('b'));
+      notes[0].addAccidental(0, new VF.Accidental('#'));
+      notes[1].addAccidental(0, new VF.Accidental('b'));
+
+      notes[8].addAccidental(0, new VF.Accidental('#'));
+      notes[8].addAccidental(1, new VF.Accidental('b'));
+      notes[8].addAccidental(2, new VF.Accidental('b'));
       //notes[2].addAccidental(0,new VF.Accidental('##'));
      // notes[3].addAccidental(0,new VF.Accidental('bb'));
       const beams = Vex.Flow.Beam.generateBeams(notes,{
@@ -43,12 +49,15 @@ VF.Test.NumberedNote = (function() {
         groups: [new Vex.Flow.Fraction(2, 8),new Vex.Flow.Fraction(4, 16)]
       });
       //notes[0].addDot(0);
+      let offset = 0;
       for (let i = 0; i < notes.length; i++) {
         var note = notes[i];
+        var width = note.full_width + 10;
         new VF.TickContext()
           .addTickable(note)
           .preFormat()
-          .setX(i * 25);
+          .setX(offset + width);
+        offset += width;
 
         note.setContext(vf.getContext()).draw();
       }
@@ -72,9 +81,21 @@ VF.Test.NumberedNote = (function() {
         curve1.setContext(vf.getContext());
         curve1.draw();
       }
+      {
+        var curve1 = new Vex.Flow.Curve(notes[8], notes[9], {
+          spacing: 1,
+          invert: true,
+        });
+        curve1.setContext(vf.getContext());
+        curve1.draw();
+      }
       vf.draw();
+      console.log(notes)
       ok(true);
+
     }
+
+
   };
   return NumberedNote;
 })();
