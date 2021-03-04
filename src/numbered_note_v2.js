@@ -220,6 +220,14 @@ export class NumberedNote extends StaveNote {
     this.setYs(ys);
   }
 
+  getFullWidth() {
+    return this.full_width
+  }
+
+  getFullHeight() {
+    return this.full_height;
+  }
+
 
 
   get full_width() {
