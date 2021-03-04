@@ -272,7 +272,7 @@ export class NumberedNote extends StaveNote {
   }
 
   get bottom_x() {
-    return this.x;
+    return this.x || 0;
   }
 
   get bottom_y() {
