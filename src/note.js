@@ -239,7 +239,6 @@ export class Note extends Tickable {
   getStave() { return this.stave; }
   setStave(stave) {
     this.stave = stave;
-    console.log(this.stave,this.stave.getYForLine(0))
     this.setYs([stave.getYForLine(0)]); // Update Y values if the stave is changed.
     this.context = this.stave.context;
     return this;
@@ -415,12 +414,10 @@ export class Note extends Tickable {
     let x = this.tickContext.getX();
 
     if (this.stave) {
-      console.log(x,this.stave.getNoteStartX())
       x += this.stave.getNoteStartX() + this.musicFont.lookupMetric('stave.padding');
     }
 
     if (this.isCenterAligned()) {
-      console.log("center",this.getCenterXShift())
       x += this.getCenterXShift();
     }
 

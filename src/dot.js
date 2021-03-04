@@ -142,8 +142,8 @@ export class Dot extends Modifier {
       start.y = this.note.getStemExtents().baseY;
     }
     if(this.note.getCategory() === "numberednotes") {
-      start.y = this.note.y - 2
-      start.x += this.note.x - 6
+      start.x = this.note.x + this.note.note_width;
+      start.y = this.note.y + this.radius;
     }
 
     const x = (start.x + this.x_shift) + this.width - this.radius;

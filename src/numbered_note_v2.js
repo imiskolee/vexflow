@@ -1,7 +1,7 @@
 import {Vex} from "./vex";
 import {StaveNote} from "./stavenote";
 import {Flow} from "./tables";
-import {createCanvas} from "canvas";
+import {Dot} from "./dot";
 
 let _text_width = null;
 
@@ -9,6 +9,14 @@ export class NumberedNote extends StaveNote {
 
   static get CATEGORY() {
     return "numberednotes"
+  }
+
+  static get longDurationLine() {
+    return {
+      '1' : 3,
+      '2' : 1,
+      '6' : 2,
+    }
   }
 
   static get numberedDurationLine() {
@@ -29,16 +37,22 @@ export class NumberedNote extends StaveNote {
     this.keys = options.keys || [];
     this.fontSize = 20;
     this.glyph = {
-      dot_shiftY : 0
+      dot_shiftY : -2,
     }
     this.offset_x = 0;
     this.offset_y = 0;
     this.note_tones = [];
     this.duration_lines = 0;
+    this.long_duration_lines = 0;
     const duration = Flow.sanitizeDuration(this.duration)
     var lines = NumberedNote.numberedDurationLine[duration.toString()]
     if(lines) {
       this.duration_lines = lines;
+    }
+
+    lines = NumberedNote.longDurationLine[duration.toString()]
+    if(lines) {
+      this.long_duration_lines = lines;
     }
     //todo: hack for get text width;
     if(!_text_width) {
@@ -48,7 +62,7 @@ export class NumberedNote extends StaveNote {
       document.body.append(canvas_ele)
       const canvas = document.getElementById(id);
       const ctx = canvas.getContext('2d');
-      ctx.font_size = 20;
+      ctx.font = "Arial 16px"
       var text = ctx.measureText("5");
       _text_width = text.width;
       document.body.removeChild(canvas);
@@ -69,18 +83,33 @@ export class NumberedNote extends StaveNote {
     if (this.modifierContext) this.modifierContext.preFormat();
 
     this.setWidth(this.full_width)
-    console.log("w",this.full_width);
     this.setPreFormatted(true);
   }
 
   preFormatModifier() {
+    let offset_modifier = 0;
+    let idx = 0;
     this.modifiers.forEach((modifier)=>{
+      let changed = false;
       switch(modifier.getAttribute("type")) {
         case 'Accidental':
-          modifier.render_options.font_scale = this.note_width * 1.5
-          modifier.y_shift = 1 *this.unit_height;
-          modifier.reset()
+          modifier.render_options.font_scale = this.note_width * 1.7;
+          modifier.x_shift = 2;
+          changed = true;
+          break
+        case 'Stroke' :
+          modifier.x_shift = -1 * offset_modifier;
+
+          changed = true;
+          break
+        case 'Dot' :
+          modifier.x_shift = idx * this.duration_dot_width;
+          idx++;
+          break
       }
+      modifier.y_shift = 1 *this.unit_height;
+      modifier.reset()
+      offset_modifier += modifier.getWidth() / 2;
     })
   }
 
@@ -89,19 +118,20 @@ export class NumberedNote extends StaveNote {
     if (!this.stave) {
       throw new Vex.RERR('NoStave', "Can't draw without a stave.");
     }
-    this.preFormatModifier();
+
     let ctx = this.context;
     ctx.save()
-    ctx.setFont("Arial", this.note_width, "normal")
+    ctx.setFont("Arial", this.note_height, "normal")
 
     ctx.openGroup('note', null, { pointerBBox: true });
 
     let x = this.getAbsoluteX();
-    console.log(this.getAbsoluteX());
    this.x = x;
-    let y;
-    y = this.stave.getYForLine(1) + this.stave.options.glyph_spacing_px / 2;
+    let y = this.stave.getYForLine(1) + this.note_height / 2;
     this.y = y;
+
+    this.preFormatModifier();
+
     this.buildToneHeads();
     this.applyStyle();
     this.note_tones.forEach((head)=>{
@@ -112,14 +142,10 @@ export class NumberedNote extends StaveNote {
     ctx.closeGroup();
     ctx.closeGroup();
     this.drawDurationLine(ctx,{});
+    this.drawLongDurationLines(ctx);
     this.restoreStyle();
-
     this.setRendered();
   }
-
-
-
-
   drawDurationLine(ctx,opts) {
     var id = this.attrs.id + '-lines'
     ctx.openGroup('numbered_note_lines',id)
@@ -160,6 +186,14 @@ export class NumberedNote extends StaveNote {
     }
   }
 
+  drawLongDurationLines(ctx) {
+    let start_x = this.x + this.note_width + this.right_width;
+    for(let i=1;i <= this.long_duration_lines;i++) {
+      ctx.fillRect(start_x,this.y - this.full_height / 2,this.long_duration_width,2);
+      start_x += (this.long_duration_space + this.long_duration_width)
+    }
+  }
+
   setStave(stave) {
     super.setStave(stave);
     return this;
@@ -189,7 +223,11 @@ export class NumberedNote extends StaveNote {
 
 
   get full_width() {
-    return this.note_width + this.left_width + this.right_width
+    return this.note_width + this.left_width + this.right_width + (this.long_duration_line_width)
+  }
+
+  get long_duration_line_width() {
+    return (this.long_duration_width + this.long_duration_space) * this.long_duration_lines;
   }
 
   get full_height() {
@@ -197,7 +235,10 @@ export class NumberedNote extends StaveNote {
   }
 
   get note_width() {
-    return this.stave.options.glyph_spacing_px
+    return this.stave.options.glyph_spacing_px || 0;
+  }
+  get note_dot_width() {
+    return 6;
   }
 
   get note_height() {
@@ -216,9 +257,6 @@ export class NumberedNote extends StaveNote {
 
   get top_y() {
     var _self = this;
-    console.log(Math.sum,_self.note_tones.map((head)=>{
-      return (head.td + head.bd) * (_self.dot_space + _self.dot_width)
-    }))
     return this.y - ( _self.note_tones.map((head)=>{
       return (head.td + head.bd) * (_self.dot_space + _self.dot_width);
     }).reduce((p,v)=>{return p +v},0) + (this.note_height * this.note_tones.length) - this.unit_height -
@@ -241,8 +279,26 @@ export class NumberedNote extends StaveNote {
   }
 
   get right_width() {
-    return 0;
+    return this.full_duration_dot_width;
   }
+  get duration_dot_width() {
+    return 6;
+  }
+
+  get full_duration_dot_width() {
+    return this.duration_dot_width * this.getModifiersByCategory(Dot.CATEGORY).length;
+  }
+
+  getModifiersByCategory(category) {
+      var lst = [];
+      this.modifiers.forEach((v)=>{
+        if(v.getCategory() === category) {
+          lst.push(v);
+        }
+      })
+    return lst;
+  }
+
 
   get head_space() {
     return 6;
@@ -264,15 +320,23 @@ export class NumberedNote extends StaveNote {
     return 2;
   }
 
+  get long_duration_space() {
+    return 10;
+  }
+
+  get long_duration_width() {
+    return 20;
+  }
+
   getWidth() {
     //basic font size + left modifiers width + right modifier width + spacing
-    return this.full_width + 10;
+    return this.full_width;
   }
 
   get modifiers_width() {
     let w = 0;
     this.modifiers.forEach((modifier)=>{
-      w += modifier.getWidth();
+      w += modifier.getWidth() / 2;
     })
     return w;
   }
@@ -333,16 +397,22 @@ class NumberedNoteHead {
     let cy = this.y;
     ctx.openGroup("numbered-note-head")
     var basic_x = this.x;
+
+    let start_top_cy = cy - this.note.unit_height - this.note.dot_space;
+
    for(let i =0;i < this.meta.td;i++) {
-     this.draw_dot(basic_x + _text_width,cy,note.dot_width);
-     cy += (this.note.dot_width + this.note.dot_space);
+     this.draw_dot(ctx, basic_x + _text_width,start_top_cy,this.note.dot_width);
+     start_top_cy -= (this.note.dot_width + this.note.dot_space);
    }
     ctx.fillText(this.meta.key,basic_x,cy,this.note.note_height);
     cy += this.note.dot_space + this.note.dot_width;
    for(let i = 0; i < this.meta.bd;i++) {
-
        if(this.idx === 0) {
-          let lines_height = (this.note.duration_lines * (this.note.duration_line_height + this.note.duration_line_space))
+          let lines_height = (this.note.duration_lines *
+            (this.note.duration_line_height + this.note.duration_line_space))
+         if(this.note.duration_lines > 1) {
+           lines_height -= this.note.duration_line_space
+         }
           cy += lines_height
        }
      this.draw_dot(ctx,basic_x + _text_width ,cy,this.note.dot_width);
@@ -363,5 +433,4 @@ class NumberedNoteHead {
     ctx.fill()
     ctx.closeGroup()
   }
-
 }

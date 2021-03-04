@@ -1146,4 +1146,5 @@ export class StaveNote extends StemmableNote {
     this.restoreStyle();
     this.setRendered();
   }
+
 }

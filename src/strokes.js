@@ -120,6 +120,8 @@ export class Stroke extends Modifier {
         }
       }
     }
+    topY += this.y_shift;
+    botY += this.y_shift;
 
     let arrow;
     let arrow_shift_x;
@@ -192,7 +194,7 @@ export class Stroke extends Modifier {
     let strokeLine = 'straight';
     // Draw the stroke
     if (this.type === Stroke.Type.BRUSH_DOWN || this.type === Stroke.Type.BRUSH_UP) {
-      this.context.fillRect(x + this.x_shift, topY, 1, botY - topY);
+      this.context.fillRect(x + this.x_shift, topY , 1, botY - topY);
     } else {
       strokeLine = 'wiggly';
       if (this.note instanceof StaveNote) {
@@ -211,7 +213,7 @@ export class Stroke extends Modifier {
           Glyph.renderGlyph(
             this.context,
             x + this.x_shift - 4,
-            i,
+            i ,
             this.render_options.font_scale,
             'vexWiggleArpeggioUp'
           );
@@ -230,7 +232,7 @@ export class Stroke extends Modifier {
     Glyph.renderGlyph(
       this.context,
       x + this.x_shift + arrow_shift_x,
-      arrow_y,
+      arrow_y ,
       this.render_options.font_scale,
       arrow,
       { category: `stroke.${arrow}.${strokeLine}` }
