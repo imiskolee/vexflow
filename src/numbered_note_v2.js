@@ -44,6 +44,7 @@ export class NumberedNote extends StaveNote {
     this.note_tones = [];
     this.duration_lines = 0;
     this.long_duration_lines = 0;
+    this.note_size = options.note_size || 16;
     const duration = Flow.sanitizeDuration(this.duration)
     var lines = NumberedNote.numberedDurationLine[duration.toString()]
     if(lines) {
@@ -242,7 +243,7 @@ export class NumberedNote extends StaveNote {
   }
 
   get note_width() {
-    return this.stave.options.glyph_spacing_px || 0;
+    return this.note_size || 0;
   }
   get note_dot_width() {
     return 6;
@@ -252,7 +253,7 @@ export class NumberedNote extends StaveNote {
     return this.unit_height;
   }
   get unit_height() {
-    return this.stave.options.glyph_spacing_px || 0;
+    return this.note_size || 0;
   }
   get note_x() {
     return this.x;
@@ -396,6 +397,7 @@ class NumberedNoteHead {
     this.idx = options.idx || 0;
     this.note = options.note || 0;
     this.meta = this.tone_to_numbered_key();
+    this.noteSize = options.noteSize || 16;
     this.td = this.meta.td;
     this.bd = this.meta.bd;
   }
