@@ -67,6 +67,7 @@ export class NumberedNote extends StaveNote {
       _text_width = text.width;
       document.body.removeChild(canvas);
     }
+    this.buildToneHeads();
   }
 
   getCategory() {
@@ -131,8 +132,6 @@ export class NumberedNote extends StaveNote {
     this.y = y;
 
     this.preFormatModifier();
-
-    this.buildToneHeads();
     this.applyStyle();
     this.note_tones.forEach((head)=>{
       head.draw(ctx);
