@@ -239,6 +239,7 @@ export class NumberedNote extends StaveNote {
   }
 
   get full_height() {
+
     return this.bottom_y - this.top_y;
   }
 
@@ -256,16 +257,17 @@ export class NumberedNote extends StaveNote {
     return this.note_size || 0;
   }
   get note_x() {
-    return this.x;
+    return this.x || 0;
   }
 
   get top_x() {
-    return this.x;
+    return this.x || 0;
   }
 
   get top_y() {
     var _self = this;
-    return this.y - ( _self.note_tones.map((head)=>{
+    const y = this.y || 0;
+    return y - ( _self.note_tones.map((head)=>{
       return (head.td + head.bd) * (_self.dot_space + _self.dot_width);
     }).reduce((p,v)=>{return p +v},0) + (this.note_height * this.note_tones.length) - this.unit_height -
       this.note_tones[0].bd * (_self.dot_space + _self.dot_width) + (this.note_tones.length - 1) * this.head_space);
@@ -276,7 +278,8 @@ export class NumberedNote extends StaveNote {
   }
 
   get bottom_y() {
-    return this.y +
+    const y = this.y || 0;
+    return y +
       this.unit_height + this.duration_lines * (this.duration_line_height + this.duration_line_space)
       + ((this.note_tones[0].meta.bd) * (this.dot_width + this.dot_space))
   }

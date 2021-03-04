@@ -60,6 +60,11 @@ VF.Test.NumberedNote = (function() {
       notes[13].addStroke(0, new VF.Stroke(VF.Stroke.Type.RASQUEDO_DOWN));
       notes[17].addStroke(0, new VF.Stroke(VF.Stroke.Type.RASQUEDO_DOWN));
       notes[18].addStroke(0, new VF.Stroke(VF.Stroke.Type.RASQUEDO_UP));
+
+      console.log(notes[0].getFullHeight());
+
+
+
       //notes[2].addAccidental(0,new VF.Accidental('##'));
      // notes[3].addAccidental(0,new VF.Accidental('bb'));
       const beams = Vex.Flow.Beam.generateBeams(notes,{
