@@ -120,7 +120,7 @@ export class NumberedNote extends StaveNote {
     if (!this.stave) {
       throw new Vex.RERR('NoStave', "Can't draw without a stave.");
     }
-
+    this.buildToneHeads();
     let ctx = this.context;
     ctx.save()
     ctx.setFont("Arial", this.note_height, "normal")
@@ -215,7 +215,6 @@ export class NumberedNote extends StaveNote {
       this.offset_y -= (head.height + this.head_space);
       this.note_tones.push(head);
       ys.push(this.offset_y);
-
     }
     this.setYs(ys);
   }
