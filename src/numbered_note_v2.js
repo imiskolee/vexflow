@@ -203,6 +203,7 @@ export class NumberedNote extends StaveNote {
     this.offset_x = this.x;
     this.offset_y = this.y;
     let ys = [];
+    this.note_tones = [];
     for(let i = 0;i<this.keys.length;i++) {
       const head = new NumberedNoteHead({
         key: this.keys[i],
@@ -211,7 +212,6 @@ export class NumberedNote extends StaveNote {
         idx: i,
         note: this,
       });
-
       this.offset_y -= (head.height + this.head_space);
       this.note_tones.push(head);
       ys.push(this.offset_y);
