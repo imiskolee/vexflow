@@ -124,7 +124,7 @@ export class NumberedNote extends StaveNote {
     let ctx = this.context;
     ctx.save()
     ctx.setFont("Arial", this.note_height, "normal")
-
+    this.setAttribute('el', ctx.openGroup('stavenote', this.getAttribute('id')));
     ctx.openGroup('note', null, { pointerBBox: true });
 
     let x = this.getAbsoluteX();
@@ -141,10 +141,12 @@ export class NumberedNote extends StaveNote {
     this.drawModifiers();
     ctx.closeGroup();
     ctx.closeGroup();
+    ctx.closeGroup();
     this.drawDurationLine(ctx,{});
     this.drawLongDurationLines(ctx);
     this.restoreStyle();
     this.setRendered();
+
   }
   drawDurationLine(ctx,opts) {
     var id = this.attrs.id + '-lines'
