@@ -80,7 +80,7 @@ export class NumberedNote extends StaveNote {
   }
 
   preFormat() {
-    this.checkContext();
+    //this.checkContext();
     if (this.preFormatted) return;
     if (this.modifierContext) this.modifierContext.preFormat();
 
