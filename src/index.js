@@ -77,7 +77,7 @@ import { GlyphNote } from './glyphnote';
 import { RepeatNote } from './repeatnote';
 
 import { Font, Fonts, DefaultFontStack } from './smufl';
-import {NumberedNote} from "./numbered_note_v2";
+import {NumberedNote} from "./numbered_note";
 
 Vex.Flow = Flow;
 Vex.Flow.Element = Element;

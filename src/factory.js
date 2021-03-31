@@ -48,7 +48,7 @@ import { BarNote } from './barnote';
 import { TabNote } from './tabnote';
 import { TabStave } from './tabstave';
 import { TextNote } from './textnote';
-import {NumberedNote} from "./numbered_note_V2";
+import {NumberedNote} from "./numbered_note";
 
 // To enable logging for this class. Set `Vex.Flow.Factory.DEBUG` to `true`.
 function L(...args) { if (Factory.DEBUG) Vex.L('Vex.Flow.Factory', args); }
