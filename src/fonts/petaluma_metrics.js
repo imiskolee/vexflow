@@ -335,60 +335,177 @@ export const PetalumaMetrics = {
     },
     chordSymbol: {
       global: {
-        superscriptOffset: -8,
-        subscriptOffset: 4,
-        kerningOffset: -2
+        superscriptOffset: -400,
+        subscriptOffset: 300,
+        kerningOffset: -150,
+        lowerKerningText:  ['D', 'F', 'P', 'T', 'V', 'Y'],
+        upperKerningText:  ['L'],
+        spacing: 20,
+        superSubRatio: 0.73
+      },
+      csymDiminished: {
+        scale: 0.8,
+        leftSideBearing: -95,
+        advanceWidth: 506,
+        yOffset: 0
+      },
+      csymHalfDiminished: {
+        scale: 0.8,
+        leftSideBearing: -32,
+        advanceWidth: 506,
+        yOffset: 0
       },
       csymAugmented: {
         scale: 1,
-        shiftY: -2,
-        shiftX: 0
+        leftSideBearing: -25,
+        advanceWidth: 530,
+        yOffset: 0
       },
       csymParensLeftTall: {
         scale: 0.8,
-        shiftY: 1,
-        shiftX: 0
+        leftSideBearing: 0,
+        advanceWidth: 155,
+        yOffset: 150
       },
       csymParensRightTall: {
         scale: 0.8,
-        shiftY: 1,
-        shiftX: 0
+        leftSideBearing: 40,
+        advanceWidth: 189,
+        yOffset: 150
       },
       csymBracketLeftTall: {
         scale: 0.8,
-        shiftY: 1,
-        shiftX: 0
+        leftSideBearing: 0,
+        advanceWidth: 328,
+        yOffset: 0
       },
       csymBracketRightTall: {
         scale: 0.8,
-        shiftY: 1,
-        shiftX: 0
+        leftSideBearing: 1,
+        advanceWidth: 600,
+        yOffset: 0
       },
       csymParensLeftVeryTall: {
-        scale: 0.8,
-        shiftY: 0,
-        shiftX: 0
+        scale: 0.95,
+        leftSideBearing: 0,
+        advanceWidth: 210,
+        yOffset: 250
       },
       csymParensRightVeryTall: {
-        scale: 0.8,
-        shiftY: 0,
-        shiftX: 0
+        scale: 0.9,
+        leftSideBearing: -100,
+        advanceWidth: 111,
+        yOffset: 250
       },
       csymDiagonalArrangementSlash: {
         scale: 0.6,
-        shiftY: 0,
-        shiftX: -2
+        leftSideBearing: -1,
+        advanceWidth: 990,
+        yOffset: 0
+      },
+      csymMinor: {
+        scale: 0.7,
+        leftSideBearing: 0,
+        advanceWidth: 482,
+        yOffset: 0
+      },
+      csymMajorSeventh: {
+        scale: 0.8,
+        leftSideBearing: 100,
+        yOffset: 0,
+        advanceWidth: 600
       },
       accidentalSharp: {
-        scale: 1,
-        shiftY: -3,
-        shiftX: 0
+        scale: 0.7,
+        leftSideBearing: 0,
+        advanceWidth: 425,
+        yOffset: -422
       },
       accidentalFlat: {
-        scale: 1,
-        shiftY: -2,
-        shiftX: 0
+        scale: 0.8,
+        leftSideBearing: -10,
+        advanceWidth: 228,
+        yOffset: -284
       }
+    },
+    jazzOrnaments: {
+      brassScoop: {
+        scale: 1.0,
+        xOffset: -12,
+        yOffset: 0,
+        stemUpYOffset: 0,
+        reportedWidth: 10
+      },
+      brassDoitMedium: {
+        scale: 1.0,
+        xOffset: 16,
+        yOffset: 0,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassFallLipShort: {
+        scale: 1.0,
+        xOffset: 16,
+        yOffset: 0,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassLiftMedium: {
+        scale: 1.0,
+        xOffset: 16,
+        yOffset: 5,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassFallRoughMedium: {
+        scale: 1.0,
+        xOffset: 16,
+        yOffset: 26,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassBend: {
+        scale: 1.0,
+        xOffset: 3,
+        yOffset: -8,
+        stemUpYOffset: 28,
+        reportedWidth: 5
+      },
+      brassMuteClosed: {
+        scale: 1.0,
+        xOffset: 3,
+        yOffset: -8,
+        stemUpYOffset: 26,
+        reportedWidth: 5
+      },
+      brassMuteOpen: {
+        scale: 1.0,
+        xOffset: 4,
+        yOffset: -8,
+        stemUpYOffset: 27,
+        reportedWidth: 5
+      },
+      brassFlip: {
+        scale: 1.0,
+        xOffset: 10,
+        yOffset: -4,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassJazzTurn: {
+        scale: 1.0,
+        xOffset: 6,
+        yOffset: -4,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
+      brassSmear: {
+        scale: 1.0,
+        xOffset: 10,
+        yOffset: -4,
+        stemUpYOffset: 0,
+        reportedWidth: 5
+      },
     }
   }
 };

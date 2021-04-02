@@ -3,45 +3,13 @@
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
 
-VF.Test.ClefKeySignature = (function() {
+VF.Test.ClefKeySignature = (function () {
   var ClefKeySignature = {
-    MAJOR_KEYS: [
-      'C',
-      'F',
-      'Bb',
-      'Eb',
-      'Ab',
-      'Db',
-      'Gb',
-      'Cb',
-      'G',
-      'D',
-      'A',
-      'E',
-      'B',
-      'F#',
-      'C#',
-    ],
+    MAJOR_KEYS: ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'],
 
-    MINOR_KEYS: [
-      'Am',
-      'Dm',
-      'Gm',
-      'Cm',
-      'Fm',
-      'Bbm',
-      'Ebm',
-      'Abm',
-      'Em',
-      'Bm',
-      'F#m',
-      'C#m',
-      'G#m',
-      'D#m',
-      'A#m',
-    ],
+    MINOR_KEYS: ['Am', 'Dm', 'Gm', 'Cm', 'Fm', 'Bbm', 'Ebm', 'Abm', 'Em', 'Bm', 'F#m', 'C#m', 'G#m', 'D#m', 'A#m'],
 
-    Start: function() {
+    Start: function () {
       QUnit.module('Clef Keys');
       QUnit.test('Key Parser Test', VF.Test.ClefKeySignature.parser);
       VF.Test.runTests('Major Key Clef Test', VF.Test.ClefKeySignature.keys, { majorKeys: true });
@@ -49,7 +17,7 @@ VF.Test.ClefKeySignature = (function() {
       VF.Test.runTests('Stave Helper', VF.Test.ClefKeySignature.staveHelper);
     },
 
-    catchError: function(spec) {
+    catchError: function (spec) {
       try {
         VF.keySignature(spec);
       } catch (e) {
@@ -57,7 +25,7 @@ VF.Test.ClefKeySignature = (function() {
       }
     },
 
-    parser: function() {
+    parser: function () {
       expect(11);
       VF.Test.ClefKeySignature.catchError('asdf');
       VF.Test.ClefKeySignature.catchError('D!');
@@ -82,7 +50,7 @@ VF.Test.ClefKeySignature = (function() {
       ok(true, 'all pass');
     },
 
-    keys: function(options, contextBuilder) {
+    keys: function (options, contextBuilder) {
       var clefs = [
         'treble',
         'soprano',
@@ -97,11 +65,9 @@ VF.Test.ClefKeySignature = (function() {
         'percussion',
       ];
 
-      var ctx = new contextBuilder(options.elementId, 400, 20 + 80 * 2 * clefs.length);
+      var ctx = contextBuilder(options.elementId, 400, 20 + 80 * 2 * clefs.length);
       var staves = [];
-      var keys = (options.params.majorKeys)
-        ? VF.Test.ClefKeySignature.MAJOR_KEYS
-        : VF.Test.ClefKeySignature.MINOR_KEYS;
+      var keys = options.params.majorKeys ? VF.Test.ClefKeySignature.MAJOR_KEYS : VF.Test.ClefKeySignature.MINOR_KEYS;
 
       var i;
       var flat;
@@ -135,8 +101,8 @@ VF.Test.ClefKeySignature = (function() {
       ok(true, 'all pass');
     },
 
-    staveHelper: function(options, contextBuilder) {
-      var ctx = new contextBuilder(options.elementId, 400, 400);
+    staveHelper: function (options, contextBuilder) {
+      var ctx = contextBuilder(options.elementId, 400, 400);
       var stave = new VF.Stave(10, 10, 370);
       var stave2 = new VF.Stave(10, 90, 370);
       var stave3 = new VF.Stave(10, 170, 370);
@@ -172,4 +138,4 @@ VF.Test.ClefKeySignature = (function() {
   };
 
   return ClefKeySignature;
-}());
+})();

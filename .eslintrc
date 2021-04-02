@@ -1,0 +1,50 @@
+{
+  "root": true,
+  "env": { "browser": true, "node": true },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
+  "rules": {
+    "no-console": 1, // Means warning
+    "prettier/prettier": 2 // Means error
+  },
+  "overrides": [
+    {
+      "files": [ "**/*.ts" ],
+      "extends": [
+        "eslint:recommended",
+        "prettier"
+      ],
+      "rules": {  
+        "no-console": 1, // Means warning
+        "prettier/prettier": 2, // Means error
+      }
+    },
+    {
+      "files": [ "src/**/*.js" ],
+      "extends": [
+        "eslint:recommended",
+        "prettier"
+      ]
+    },
+    {
+      "files": [ "tests/**/*.js" ],
+      "extends": [
+        "eslint:recommended",
+        "prettier"
+      ],
+      "rules": {  
+        "no-console": 1, // Means warning
+        "prettier/prettier": 2, // Means error
+        "no-restricted-globals": 0,
+        "no-undef": 0,
+        "no-undef-init": 0
+      }
+    }
+  ]
+}

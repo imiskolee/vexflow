@@ -26,7 +26,7 @@ export class Stave extends Element {
     this.formatted = false;
     this.start_x = x + 5;
     this.end_x = x + width;
-    this.modifiers = [];  // stave modifiers (clef, key, time, barlines, coda, segno, etc.)
+    this.modifiers = []; // stave modifiers (clef, key, time, barlines, coda, segno, etc.)
     this.measure = 0;
     this.clef = 'treble';
     this.endClef = undefined;
@@ -36,20 +36,24 @@ export class Stave extends Element {
       weight: '',
     };
     this.options = {
-      vertical_bar_width: 10,       // Width around vertical bar end-marker
+      vertical_bar_width: 10, // Width around vertical bar end-marker
       glyph_spacing_px: 10,
       num_lines: 5,
       draw_line : true,
       fill_style: '#999999',
-      left_bar: true,               // draw vertical bar on left
-      right_bar: true,               // draw vertical bar on right
-      spacing_between_lines_px: 10, // in pixels
-      space_above_staff_ln: 4,      // in staff lines
-      space_below_staff_ln: 4,      // in staff lines
-      top_text_position: 1,          // in staff lines
+      left_bar: true, // draw vertical bar on left
+      right_bar: true, // draw vertical bar on right
+      spacing_between_lines_px: Flow.STAVE_LINE_DISTANCE, // in pixels
+      space_above_staff_ln: 4, // in staff lines
+      space_below_staff_ln: 4, // in staff lines
+      top_text_position: 1, // in staff lines
     };
     this.bounds = { x: this.x, y: this.y, w: this.width, h: 0 };
     Vex.Merge(this.options, options);
+
+    if(!this.options.draw_line) {
+      this.options.fill_style = "rgba(255,255,255,0.01)";
+    }
 
     this.resetLines();
 
@@ -60,19 +64,22 @@ export class Stave extends Element {
     this.addEndModifier(new Barline(this.options.right_bar ? BARTYPE.SINGLE : BARTYPE.NONE));
   }
 
-  space(spacing) { return this.options.spacing_between_lines_px * spacing; }
+  space(spacing) {
+    return this.options.spacing_between_lines_px * spacing;
+  }
 
   resetLines() {
     this.options.line_config = [];
     for (let i = 0; i < this.options.num_lines; i++) {
       this.options.line_config.push({ visible: true });
     }
-    this.height = (this.options.num_lines + this.options.space_above_staff_ln) *
-      this.options.spacing_between_lines_px;
+    this.height = (this.options.num_lines + this.options.space_above_staff_ln) * this.options.spacing_between_lines_px;
     this.options.bottom_text_position = this.options.num_lines;
   }
 
-  getOptions() { return this.options; }
+  getOptions() {
+    return this.options;
+  }
 
   setNoteStartX(x) {
     if (!this.formatted) this.format();
@@ -93,22 +100,33 @@ export class Stave extends Element {
 
     return this.end_x;
   }
-  getTieStartX() { return this.start_x; }
-  getTieEndX() { return this.x + this.width; }
-  getX() { return this.x; }
-  getNumLines() { return this.options.num_lines; }
+  getTieStartX() {
+    return this.start_x;
+  }
+  getTieEndX() {
+    return this.x + this.width;
+  }
+  getX() {
+    return this.x;
+  }
+  getNumLines() {
+    return this.options.num_lines;
+  }
   setNumLines(lines) {
     this.options.num_lines = parseInt(lines, 10);
     this.resetLines();
     return this;
   }
-  setY(y) { this.y = y; return this; }
+  setY(y) {
+    this.y = y;
+    return this;
+  }
 
   getTopLineTopY() {
-    return this.getYForLine(0) - (Flow.STAVE_LINE_THICKNESS / 2);
+    return this.getYForLine(0) - Flow.STAVE_LINE_THICKNESS / 2;
   }
   getBottomLineBottomY() {
-    return this.getYForLine(this.getNumLines() - 1) + (Flow.STAVE_LINE_THICKNESS / 2);
+    return this.getYForLine(this.getNumLines() - 1) + Flow.STAVE_LINE_THICKNESS / 2;
   }
 
   setX(x) {
@@ -144,11 +162,16 @@ export class Stave extends Element {
     return {
       fillStyle: this.options.fill_style,
       strokeStyle: this.options.fill_style, // yes, this is correct for legacy compatibility
-      lineWidth: Flow.STAVE_LINE_THICKNESS, ...this.style || {}
+      opacity: this.options.draw_line ? 1 : 0,
+      lineWidth: Flow.STAVE_LINE_THICKNESS,
+      ...(this.style || {}),
     };
   }
 
-  setMeasure(measure) { this.measure = measure; return this; }
+  setMeasure(measure) {
+    this.measure = measure;
+    return this;
+  }
 
   /**
    * Gets the pixels to shift from the beginning of the stave
@@ -231,8 +254,7 @@ export class Stave extends Element {
   getBottomY() {
     const options = this.options;
     const spacing = options.spacing_between_lines_px;
-    const score_bottom = this.getYForLine(options.num_lines) +
-      (options.space_below_staff_ln * spacing);
+    const score_bottom = this.getYForLine(options.num_lines) + options.space_below_staff_ln * spacing;
 
     return score_bottom;
   }
@@ -246,7 +268,9 @@ export class Stave extends Element {
     const options = this.options;
     const spacing = options.spacing_between_lines_px;
     const headroom = options.space_above_staff_ln;
-    const y = this.y + (line * spacing) + (headroom * spacing);
+
+    const y = this.y + line * spacing + headroom * spacing;
+
     return y;
   }
 
@@ -257,7 +281,7 @@ export class Stave extends Element {
     const options = this.options;
     const spacing = options.spacing_between_lines_px;
     const headroom = options.space_above_staff_ln;
-    return ((y - this.y) / spacing) - headroom;
+    return (y - this.y) / spacing - headroom;
   }
 
   getYForTopText(line) {
@@ -274,7 +298,7 @@ export class Stave extends Element {
     const options = this.options;
     const spacing = options.spacing_between_lines_px;
     const headroom = options.space_above_staff_ln;
-    const y = this.y + (headroom * spacing) + (5 * spacing) - (line * spacing);
+    const y = this.y + headroom * spacing + 5 * spacing - line * spacing;
 
     return y;
   }
@@ -391,8 +415,7 @@ export class Stave extends Element {
     if (position === undefined) {
       position = StaveModifier.Position.BEGIN;
     }
-    this.addModifier(new KeySignature(keySpec, cancelKeySpec)
-      .setPosition(position), position);
+    this.addModifier(new KeySignature(keySpec, cancelKeySpec).setPosition(position), position);
     return this;
   }
 
@@ -431,9 +454,10 @@ export class Stave extends Element {
   getModifiers(position, category) {
     if (position === undefined && category === undefined) return this.modifiers;
 
-    return this.modifiers.filter(modifier =>
-      (position === undefined || position === modifier.getPosition()) &&
-      (category === undefined || category === modifier.getCategory())
+    return this.modifiers.filter(
+      (modifier) =>
+        (position === undefined || position === modifier.getPosition()) &&
+        (category === undefined || category === modifier.getCategory())
     );
   }
 
@@ -457,15 +481,20 @@ export class Stave extends Element {
     const endModifiers = this.getModifiers(StaveModifier.Position.END);
 
     this.sortByCategory(begModifiers, {
-      barlines: 0, clefs: 1, keysignatures: 2, timesignatures: 3,
+      barlines: 0,
+      clefs: 1,
+      keysignatures: 2,
+      timesignatures: 3,
     });
 
     this.sortByCategory(endModifiers, {
-      timesignatures: 0, keysignatures: 1, barlines: 2, clefs: 3,
+      timesignatures: 0,
+      keysignatures: 1,
+      barlines: 2,
+      clefs: 3,
     });
 
-    if (begModifiers.length > 1 &&
-      begBarline.getType() === Barline.type.REPEAT_BEGIN) {
+    if (begModifiers.length > 1 && begBarline.getType() === Barline.type.REPEAT_BEGIN) {
       begModifiers.push(begModifiers.splice(0, 1)[0]);
       begModifiers.splice(0, 0, new Barline(Barline.type.SINGLE));
     }
@@ -505,7 +534,7 @@ export class Stave extends Element {
 
     for (let i = 0; i < endModifiers.length; i++) {
       modifier = endModifiers[i];
-      lastBarlineIdx = (modifier.getCategory() === 'barlines') ? i : lastBarlineIdx;
+      lastBarlineIdx = modifier.getCategory() === 'barlines' ? i : lastBarlineIdx;
 
       widths.right = 0;
       widths.left = 0;
@@ -518,7 +547,7 @@ export class Stave extends Element {
           widths.right = layoutMetrics.xMax || 0;
           widths.paddingRight = layoutMetrics.paddingRight || 0;
         }
-        widths.left = (-layoutMetrics.xMin) || 0;
+        widths.left = -layoutMetrics.xMin || 0;
         widths.paddingLeft = layoutMetrics.paddingLeft || 0;
 
         if (i === endModifiers.length - 1) {
@@ -560,20 +589,19 @@ export class Stave extends Element {
     const x = this.x;
     let y;
 
-    if (this.options.draw_line) {
-      // Render lines
-      for (let line = 0; line < num_lines; line++) {
-        y = this.getYForLine(line);
+    // Render lines
+    for (let line = 0; line < num_lines; line++) {
+      y = this.getYForLine(line);
 
-        this.applyStyle();
-        if (this.options.line_config[line].visible) {
-          this.context.beginPath();
-          this.context.moveTo(x, y);
-          this.context.lineTo(x + width, y);
-          this.context.stroke();
-        }
-        this.restoreStyle();
+      this.applyStyle();
+      if (this.options.line_config[line].visible) {
+        this.context.beginPath();
+        this.context.moveTo(x, y);
+        this.context.lineTo(x + width, y);
+        this.context.stroke();
+        this.context.closePath();
       }
+      this.restoreStyle();
     }
 
     // Draw the modifiers (bar lines, coda, segno, repeat brackets, etc.)
@@ -652,13 +680,10 @@ export class Stave extends Element {
     }
 
     if (line_config.visible === undefined) {
-      throw new Vex.RERR(
-        'StaveConfigError',
-        "The line configuration object is missing the 'visible' property."
-      );
+      throw new Vex.RERR('StaveConfigError', "The line configuration object is missing the 'visible' property.");
     }
 
-    if (typeof (line_config.visible) !== 'boolean') {
+    if (typeof line_config.visible !== 'boolean') {
       throw new Vex.RERR(
         'StaveConfigError',
         "The line configuration objects 'visible' property must be true or false."

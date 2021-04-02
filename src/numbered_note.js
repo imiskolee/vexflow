@@ -97,19 +97,22 @@ export class NumberedNote extends StaveNote {
         case 'Accidental':
           modifier.render_options.font_scale = this.note_width * 1.7;
           modifier.x_shift = 2;
+          modifier.y_shift = 1 *this.unit_height;
           changed = true;
           break
         case 'Stroke' :
           modifier.x_shift = -1 * offset_modifier;
-
+          modifier.y_shift = 1 *this.unit_height;
           changed = true;
           break
         case 'Dot' :
           modifier.x_shift = idx * this.duration_dot_width;
           idx++;
           break
+        default:
+          modifier.y_shift = 1 *this.unit_height;
       }
-      modifier.y_shift = 1 *this.unit_height;
+
       modifier.reset()
       offset_modifier += modifier.getWidth() / 2;
     })
@@ -128,7 +131,7 @@ export class NumberedNote extends StaveNote {
     ctx.openGroup('note', null, { pointerBBox: true });
 
     let x = this.getAbsoluteX();
-   this.x = x;
+    this.x = x;
     let y = this.stave.getYForLine(1) + this.note_height / 2;
     this.y = y;
     this.buildToneHeads();
@@ -372,13 +375,20 @@ class NumberedNoteHead {
         "6",
       "B":
         "7",
+      "R" : "0"
     }
   }
   tone_to_numbered_key() {
     var spl = this.key.split("/")
     var k = spl[0];
+    if(k === "b") {
+      k = "R"
+    }
     k = k.replaceAll("#","");
-    k = k.replaceAll("b","");
+    k = k.replaceAll("n","");
+    if(k.length > 1) {
+      k = k.replaceAll("b", "");
+    }
     var h = parseInt(spl[1]);
     var t = h - 4;
     var bd = 0;

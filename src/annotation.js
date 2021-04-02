@@ -10,12 +10,17 @@
 import { Vex } from './vex';
 import { Flow } from './tables';
 import { Modifier } from './modifier';
+import { TextFont } from './textfont';
 
 // To enable logging for this class. Set `Vex.Flow.Annotation.DEBUG` to `true`.
-function L(...args) { if (Annotation.DEBUG) Vex.L('Vex.Flow.Annotation', args); }
+function L(...args) {
+  if (Annotation.DEBUG) Vex.L('Vex.Flow.Annotation', args);
+}
 
 export class Annotation extends Modifier {
-  static get CATEGORY() { return 'annotations'; }
+  static get CATEGORY() {
+    return 'annotations';
+  }
 
   // Text annotations can be positioned and justified relative to the note.
   static get Justify() {
@@ -62,17 +67,26 @@ export class Annotation extends Modifier {
 
     let width = 0;
     for (let i = 0; i < annotations.length; ++i) {
+      let testWidth = 0;
       const annotation = annotations[i];
-      width = Math.max(annotation.getWidth(), width);
+      const textFont = TextFont.getTextFontFromVexFontData({
+        family: annotation.font.family,
+        size: annotation.font.size,
+        weight: 'normal',
+      });
+      // Calculate if the vertical extent will exceed a single line and adjust accordingly.
+      const numLines = Math.floor(textFont.maxHeight / Flow.STAVE_LINE_DISTANCE) + 1;
+      // Get the string width from the font metrics
+      testWidth = textFont.getWidthForString(annotation.text);
+      width = Math.max(width, testWidth);
       if (annotation.getPosition() === Modifier.Position.ABOVE) {
         annotation.setTextLine(state.top_text_line);
-        state.top_text_line++;
+        state.top_text_line += numLines;
       } else {
         annotation.setTextLine(state.text_line);
-        state.text_line++;
+        state.text_line += numLines;
       }
     }
-
     state.left_shift += width / 2;
     state.right_shift += width / 2;
     return true;
@@ -102,7 +116,9 @@ export class Annotation extends Modifier {
     this.setWidth(Flow.textWidth(text));
   }
 
-  getCategory() { return Annotation.CATEGORY; }
+  getCategory() {
+    return Annotation.CATEGORY;
+  }
 
   // Set font family, size, and weight. E.g., `Arial`, `10pt`, `Bold`.
   setFont(family, size, weight) {
@@ -113,19 +129,17 @@ export class Annotation extends Modifier {
   // Set vertical position of text (above or below stave). `just` must be
   // a value in `Annotation.VerticalJustify`.
   setVerticalJustification(just) {
-    this.vert_justification = typeof (just) === 'string'
-      ? Annotation.VerticalJustifyString[just]
-      : just;
+    this.vert_justification = typeof just === 'string' ? Annotation.VerticalJustifyString[just] : just;
     return this;
   }
 
   // Get and set horizontal justification. `justification` is a value in
   // `Annotation.Justify`.
-  getJustification() { return this.justification; }
+  getJustification() {
+    return this.justification;
+  }
   setJustification(just) {
-    this.justification = typeof (just) === 'string'
-      ? Annotation.JustifyString[just]
-      : just;
+    this.justification = typeof just === 'string' ? Annotation.JustifyString[just] : just;
     return this;
   }
 
@@ -134,17 +148,16 @@ export class Annotation extends Modifier {
     this.checkContext();
 
     if (!this.note) {
-      throw new Vex.RERR(
-        'NoNoteForAnnotation', "Can't draw text annotation without an attached note."
-      );
+      throw new Vex.RERR('NoNoteForAnnotation', "Can't draw text annotation without an attached note.");
     }
 
     this.setRendered();
-    const start = this.note.getModifierStartXY(Modifier.Position.ABOVE,
-      this.index);
+    const start = this.note.getModifierStartXY(Modifier.Position.ABOVE, this.index);
 
     // We're changing context parameters. Save current state.
     this.context.save();
+    const classString = Object.keys(this.getAttribute('classes')).join(' ');
+    this.context.openGroup(classString, this.getAttribute('id'));
     this.context.setFont(this.font.family, this.font.size, this.font.weight);
     const text_width = this.context.measureText(this.text).width;
 
@@ -162,7 +175,7 @@ export class Annotation extends Modifier {
       x = start.x - text_width;
     } else if (this.justification === Annotation.Justify.CENTER) {
       x = start.x - text_width / 2;
-    } else /* CENTER_STEM */ {
+    } /* CENTER_STEM */ else {
       x = this.note.getStemX() - text_width / 2;
     }
 
@@ -183,8 +196,8 @@ export class Annotation extends Modifier {
       // is bottom-right.
       y = stave.getYForBottomText(this.text_line + Flow.TEXT_HEIGHT_OFFSET_HACK);
       if (has_stem) {
-        const stem_base = (this.note.getStemDirection() === 1 ? stem_ext.baseY : stem_ext.topY);
-        y = Math.max(y, stem_base + (spacing * (this.text_line + 2)));
+        const stem_base = this.note.getStemDirection() === 1 ? stem_ext.baseY : stem_ext.topY;
+        y = Math.max(y, stem_base + spacing * (this.text_line + 2));
       }
     } else if (this.vert_justification === Annotation.VerticalJustify.CENTER) {
       const yt = this.note.getYForTopText(this.text_line) - 1;
@@ -193,16 +206,16 @@ export class Annotation extends Modifier {
     } else if (this.vert_justification === Annotation.VerticalJustify.TOP) {
       y = Math.min(stave.getYForTopText(this.text_line), this.note.getYs()[0] - 10);
       if (has_stem) {
-        y = Math.min(y, (stem_ext.topY - 5) - (spacing * this.text_line));
+        y = Math.min(y, stem_ext.topY - 5 - spacing * this.text_line);
       }
-    } else /* CENTER_STEM */ {
+    } /* CENTER_STEM */ else {
       const extents = this.note.getStemExtents();
-      y = extents.topY + (extents.baseY - extents.topY) / 2 +
-        text_height / 2;
+      y = extents.topY + (extents.baseY - extents.topY) / 2 + text_height / 2;
     }
 
     L('Rendering annotation: ', this.text, x, y);
     this.context.fillText(this.text, x, y);
+    this.context.closeGroup();
     this.context.restore();
   }
 }

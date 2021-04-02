@@ -9,5 +9,9 @@
 		"node_modules/": true,
         "docs": true
 	},
-	"editor.tabSize": 2,
+  "editor.tabSize": 2,
+  "eslint.format.enable": true,
+  "javascript.format.enable": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
 }
