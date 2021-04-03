@@ -4,9 +4,7 @@
 import { StaveModifier } from './stavemodifier';
 
 export class Volta extends StaveModifier {
-  static get CATEGORY() {
-    return 'voltas';
-  }
+  static get CATEGORY() { return 'voltas'; }
   static get type() {
     return {
       NONE: 1,
@@ -31,19 +29,15 @@ export class Volta extends StaveModifier {
     };
   }
 
-  getCategory() {
-    return Volta.CATEGORY;
-  }
-  setShiftY(y) {
-    this.y_shift = y;
-    return this;
-  }
+  getCategory() { return Volta.CATEGORY; }
+  setShiftY(y) { this.y_shift = y; return this; }
 
   draw(stave, x) {
     const ctx = stave.checkContext();
     this.setRendered();
 
-    let width = stave.width - x; // don't include x (offset) for width
+    // VexFlowPatch: don't add x. already merged in Vexflow 3.x
+    let width = stave.width - x; // don't add x offset to width
     const top_y = stave.getYForTopText(stave.options.num_lines) + this.y_shift;
     const vert_height = 1.5 * stave.options.spacing_between_lines_px;
     switch (this.volta) {
