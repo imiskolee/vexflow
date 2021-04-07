@@ -3,28 +3,32 @@
  * Copyright Mohit Muthanna 2010 <mohit@muthanna.com>
  */
 
-VF.Test.Music = (function () {
-  var Music = {
+import { Music } from '../src/music';
+import { KeyManager } from '../src/keymanager';
+import { QUnit, ok, test, expect, equal } from './declarations';
+
+export default (function () {
+  const MusicTests = {
     Start: function () {
-      QUnit.module('Music');
-      test('Valid Notes', Music.validNotes);
-      test('Valid Keys', Music.validKeys);
-      test('Note Values', Music.noteValue);
-      test('Interval Values', Music.intervalValue);
-      test('Relative Notes', Music.relativeNotes);
-      test('Relative Note Names', Music.relativeNoteNames);
-      test('Canonical Notes', Music.canonicalNotes);
-      test('Canonical Intervals', Music.canonicalNotes);
-      test('Scale Tones', Music.scaleTones);
-      test('Scale Intervals', Music.scaleIntervals);
+      QUnit.module('MusicTests');
+      test('Valid Notes', MusicTests.validNotes);
+      test('Valid Keys', MusicTests.validKeys);
+      test('Note Values', MusicTests.noteValue);
+      test('Interval Values', MusicTests.intervalValue);
+      test('Relative Notes', MusicTests.relativeNotes);
+      test('Relative Note Names', MusicTests.relativeNoteNames);
+      test('Canonical Notes', MusicTests.canonicalNotes);
+      test('Canonical Intervals', MusicTests.canonicalIntervals);
+      test('Scale Tones', MusicTests.scaleTones);
+      test('Scale Intervals', MusicTests.scaleIntervals);
     },
 
     validNotes: function () {
       expect(10);
 
-      var music = new VF.Music();
+      const music = new Music();
 
-      var parts = music.getNoteParts('c');
+      let parts = music.getNoteParts('c');
       equal(parts.root, 'c');
       equal(parts.accidental, null);
 
@@ -56,9 +60,9 @@ VF.Test.Music = (function () {
     validKeys: function () {
       expect(18);
 
-      var music = new VF.Music();
+      const music = new Music();
 
-      var parts = music.getKeyParts('c');
+      let parts = music.getKeyParts('c');
       equal(parts.root, 'c');
       equal(parts.accidental, null);
       equal(parts.type, 'M');
@@ -105,9 +109,9 @@ VF.Test.Music = (function () {
     noteValue: function () {
       expect(3);
 
-      var music = new VF.Music();
+      const music = new Music();
 
-      var note = music.getNoteValue('c');
+      let note = music.getNoteValue('c');
       equal(note, 0);
 
       try {
@@ -123,9 +127,9 @@ VF.Test.Music = (function () {
     intervalValue: function () {
       expect(2);
 
-      var music = new VF.Music();
+      const music = new Music();
 
-      var value = music.getIntervalValue('b2');
+      const value = music.getIntervalValue('b2');
       equal(value, 1);
 
       try {
@@ -138,9 +142,9 @@ VF.Test.Music = (function () {
     relativeNotes: function () {
       expect(8);
 
-      var music = new VF.Music();
+      const music = new Music();
 
-      var value = music.getRelativeNoteValue(music.getNoteValue('c'), music.getIntervalValue('b5'));
+      let value = music.getRelativeNoteValue(music.getNoteValue('c'), music.getIntervalValue('b5'));
       equal(value, 6);
 
       try {
@@ -181,7 +185,7 @@ VF.Test.Music = (function () {
     relativeNoteNames: function () {
       expect(9);
 
-      var music = new VF.Music();
+      const music = new Music();
       equal(music.getRelativeNoteName('c', music.getNoteValue('c')), 'c');
       equal(music.getRelativeNoteName('c', music.getNoteValue('db')), 'c#');
       equal(music.getRelativeNoteName('c#', music.getNoteValue('db')), 'c#');
@@ -202,7 +206,7 @@ VF.Test.Music = (function () {
     canonicalNotes: function () {
       expect(3);
 
-      var music = new VF.Music();
+      const music = new Music();
 
       equal(music.getCanonicalNoteName(0), 'c');
       equal(music.getCanonicalNoteName(2), 'd');
@@ -217,7 +221,7 @@ VF.Test.Music = (function () {
     canonicalIntervals: function () {
       expect(3);
 
-      var music = new VF.Music();
+      const music = new Music();
 
       equal(music.getCanonicalIntervalName(0), 'unison');
       equal(music.getCanonicalIntervalName(2), 'M2');
@@ -233,36 +237,36 @@ VF.Test.Music = (function () {
       expect(24);
 
       // C Major
-      var music = new VF.Music();
-      var manager = new VF.KeyManager('CM');
+      const music = new Music();
+      const manager = new KeyManager('CM');
 
-      var c_major = music.getScaleTones(music.getNoteValue('c'), VF.Music.scales.major);
-      var values = ['c', 'd', 'e', 'f', 'g', 'a', 'b'];
+      const c_major = music.getScaleTones(music.getNoteValue('c'), Music.scales.major);
+      let values = ['c', 'd', 'e', 'f', 'g', 'a', 'b'];
 
       equal(c_major.length, 7);
 
-      for (var cm = 0; cm < c_major.length; ++cm) {
+      for (let cm = 0; cm < c_major.length; ++cm) {
         equal(music.getCanonicalNoteName(c_major[cm]), values[cm]);
       }
 
       // Dorian
-      var c_dorian = music.getScaleTones(music.getNoteValue('c'), VF.Music.scales.dorian);
+      const c_dorian = music.getScaleTones(music.getNoteValue('c'), Music.scales.dorian);
       values = ['c', 'd', 'eb', 'f', 'g', 'a', 'bb'];
 
-      var note = null;
+      let note = null;
       equal(c_dorian.length, 7);
-      for (var cd = 0; cd < c_dorian.length; ++cd) {
+      for (let cd = 0; cd < c_dorian.length; ++cd) {
         note = music.getCanonicalNoteName(c_dorian[cd]);
         equal(manager.selectNote(note).note, values[cd]);
       }
 
       // Mixolydian
-      var c_mixolydian = music.getScaleTones(music.getNoteValue('c'), VF.Music.scales.mixolydian);
+      const c_mixolydian = music.getScaleTones(music.getNoteValue('c'), Music.scales.mixolydian);
       values = ['c', 'd', 'e', 'f', 'g', 'a', 'bb'];
 
       equal(c_mixolydian.length, 7);
 
-      for (var i = 0; i < c_mixolydian.length; ++i) {
+      for (let i = 0; i < c_mixolydian.length; ++i) {
         note = music.getCanonicalNoteName(c_mixolydian[i]);
         equal(manager.selectNote(note).note, values[i]);
       }
@@ -271,7 +275,7 @@ VF.Test.Music = (function () {
     scaleIntervals: function () {
       expect(6);
 
-      var music = new VF.Music();
+      const music = new Music();
 
       equal(
         music.getCanonicalIntervalName(music.getIntervalBetween(music.getNoteValue('c'), music.getNoteValue('d'))),
@@ -302,5 +306,5 @@ VF.Test.Music = (function () {
     },
   };
 
-  return Music;
+  return MusicTests;
 })();

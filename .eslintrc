@@ -18,11 +18,12 @@
       "files": [ "**/*.ts" ],
       "extends": [
         "eslint:recommended",
-        "prettier"
+        "prettier",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"    
       ],
-      "rules": {  
-        "no-console": 1, // Means warning
-        "prettier/prettier": 2, // Means error
+      "rules": {
+        "@typescript-eslint/no-inferrable-types": "off"
       }
     },
     {
@@ -38,9 +39,7 @@
         "eslint:recommended",
         "prettier"
       ],
-      "rules": {  
-        "no-console": 1, // Means warning
-        "prettier/prettier": 2, // Means error
+      "rules": {
         "no-restricted-globals": 0,
         "no-undef": 0,
         "no-undef-init": 0
